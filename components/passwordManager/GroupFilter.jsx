@@ -1,0 +1,145 @@
+// components/GroupFilter.js
+import { useRef } from "react";
+import {
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+
+const GroupFilter = ({ group, isSelected, onPress }) => {
+  const filterAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(filterAnim, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(filterAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    onPress();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: filterAnim }] }}>
+      <TouchableOpacity
+        style={[
+          styles.groupFilter,
+          // Special styling for "All" group
+          group._id === "all" && styles.allFilter,
+          isSelected && [
+            styles.selectedGroupFilter,
+            // Use purple color for "All" when selected, otherwise use group color
+            { backgroundColor: group._id === "all" ? "#6C63FF" : group.color },
+          ],
+        ]}
+        onPress={handlePress}
+      >
+        <Text style={styles.groupIcon}>{group.icon}</Text>
+        <Text
+          style={[
+            styles.groupFilterText,
+            isSelected && styles.selectedGroupFilterText,
+          ]}
+        >
+          {group.name}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const GroupFilters = ({
+  groups,
+  selectedGroup,
+  onGroupSelect,
+  fadeAnim,
+  slideAnim,
+}) => {
+  return (
+    <Animated.View
+      style={[
+        styles.groupFiltersContainer,
+        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+      ]}
+    >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.groupFiltersContent}
+      >
+        {groups.map((group) => {
+          return (
+            <GroupFilter
+              key={group._id}
+              group={group}
+              isSelected={selectedGroup === group._id}
+              onPress={() => onGroupSelect(group._id)}
+            />
+          );
+        })}
+      </ScrollView>
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  groupFiltersContainer: {
+    backgroundColor: "#fff",
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  groupFiltersContent: {
+    paddingHorizontal: 15,
+  },
+  groupFilter: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginHorizontal: 4,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    minWidth: 100,
+  },
+  selectedGroupFilter: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  allFilter: {
+    backgroundColor: "#f0f0f0",
+  },
+  groupIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  groupFilterText: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "600",
+  },
+  selectedGroupFilterText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+});
+
+export { GroupFilter };
+export default GroupFilters;
