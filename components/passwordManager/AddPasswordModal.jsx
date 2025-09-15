@@ -18,6 +18,7 @@ const AddPasswordModal = ({
   onSave,
   groups,
   loading = "loading",
+  defaultGroups
 }) => {
   const [passwordData, setPasswordData] = useState({
     title: "",

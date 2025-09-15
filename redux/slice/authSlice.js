@@ -89,14 +89,14 @@ export const loginUser = createAsyncThunk(
       if (!token) {
         throw new Error("No token received from server");
       }
-
+      
       // Store token first
       await localStorage.setItem("userToken", token);
+      Notify(data.message, 0);
 
       // Then get user data to ensure consistency
       const userResponse = await axiosInstance.get(`/api/auth/user/me`);
 
-      Notify(data.message, 0);
 
       return {
         ...data,
@@ -106,7 +106,7 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       const err = error?.response?.data?.message || error?.message;
       Notify(err, 1);
-      // return rejectWithValue(err);
+      return rejectWithValue(err); // UNCOMMENT THIS LINE - this is crucial!
     }
   }
 );
@@ -327,7 +327,7 @@ const authSlice = createSlice({
         state.loadingModal = "login";
         state.error = null;
 
-        console.log("Login fulfilled with payload:", action.payload);
+        // console.log("Login fulfilled with payload:", action.payload);
 
         const token = action.payload?.userToken || action.payload?.token;
         if (token) {

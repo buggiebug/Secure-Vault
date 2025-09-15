@@ -1,6 +1,7 @@
 // components/GroupFilter.js
 import { useRef } from "react";
 import {
+  Alert,
   Animated,
   ScrollView,
   StyleSheet,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-const GroupFilter = ({ group, isSelected, onPress }) => {
+const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
   const filterAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
@@ -27,20 +28,53 @@ const GroupFilter = ({ group, isSelected, onPress }) => {
     onPress();
   };
 
+  const handleLongPress = () => {
+    // Don't allow deleting the "All" group
+    if (group._id === "all") return;
+
+    if (["individual", "financial", "social", "mail"].includes(group._id)) {
+      Alert.alert(
+        "Delete Group",
+        `This is a default group (${group.name}). It will come back when you reopen the app, but the passwords inside will be removed.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Yes, Delete",
+            style: "destructive",
+            onPress: () => onLongPress(),
+          },
+        ]
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Delete Group",
+      `Are you sure you want to delete "${group.name}"?\nAll passwords in this group will also be deleted.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Delete",
+          style: "destructive",
+          onPress: () => onLongPress(), // ✅ call parent delete function
+        },
+      ]
+    );
+  };
+
   return (
     <Animated.View style={{ transform: [{ scale: filterAnim }] }}>
       <TouchableOpacity
         style={[
           styles.groupFilter,
-          // Special styling for "All" group
           group._id === "all" && styles.allFilter,
           isSelected && [
             styles.selectedGroupFilter,
-            // Use purple color for "All" when selected, otherwise use group color
             { backgroundColor: group._id === "all" ? "#6C63FF" : group.color },
           ],
         ]}
         onPress={handlePress}
+        onLongPress={handleLongPress} // ✅ attach long press
       >
         <Text style={styles.groupIcon}>{group.icon}</Text>
         <Text
@@ -62,6 +96,7 @@ const GroupFilters = ({
   onGroupSelect,
   fadeAnim,
   slideAnim,
+  handleDeleteGroup,
 }) => {
   return (
     <Animated.View
@@ -75,16 +110,15 @@ const GroupFilters = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.groupFiltersContent}
       >
-        {groups.map((group) => {
-          return (
-            <GroupFilter
-              key={group._id}
-              group={group}
-              isSelected={selectedGroup === group._id}
-              onPress={() => onGroupSelect(group._id)}
-            />
-          );
-        })}
+        {groups.map((group) => (
+          <GroupFilter
+            key={group._id}
+            group={group}
+            isSelected={selectedGroup === group._id}
+            onPress={() => onGroupSelect(group._id)}
+            onLongPress={() => handleDeleteGroup(group._id)} // ✅ pass down
+          />
+        ))}
       </ScrollView>
     </Animated.View>
   );

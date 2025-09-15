@@ -18,7 +18,7 @@ export const addGroup = createAsyncThunk(
   "pm/addGroup",
   async (groupData, { rejectWithValue }) => {
     try {
-      console.log(groupData);
+      // console.log(groupData);
       await axiosInstance.post(`/api/pm/groups`, groupData);
       Notify("Group added successfully", 0);
       const { data } = await axiosInstance.get(`/api/pm/groups`);
@@ -159,6 +159,7 @@ const passwordManager = createSlice({
         state.loadingModal = "deleteGroup";
         state.loadingStatus = "succeeded";
         state.groups = state.groups.filter((g) => g._id !== action.payload);
+        state.passwords = state.passwords.filter((p) => p.group !== action.payload);
       })
       .addCase(deleteGroup.rejected, (state, action) => {
         state.loadingModal = "deleteGroup";

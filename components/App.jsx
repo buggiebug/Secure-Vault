@@ -1,4 +1,4 @@
-// App.js
+// App.js - Updated to show loading only for specific scenarios
 import { useAuth } from "@/components/auth/useAuth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
@@ -109,7 +109,8 @@ function ErrorBoundary({ children }) {
 
 // Main App Content
 function AppContent() {
-  const { isAuthenticated, isInitialized, loading, error } = useAuth();
+  const { isAuthenticated, isInitialized, loading, error, loadingModal } =
+    useAuth();
   const colorScheme = useColorScheme();
 
   console.log("App render state:", {
@@ -117,17 +118,30 @@ function AppContent() {
     isInitialized,
     loading,
     error,
+    loadingModal,
   });
 
-  if (!isInitialized || loading) {
-    return (
-      <LoadingScreen
-        message={!isInitialized ? "Initializing..." : "Please wait..."}
-      />
-    );
+  // Show loading screen only for:
+  // 1. App initialization (!isInitialized)
+  // 2. Successful login/signup transitions (loading && isAuthenticated)
+  if (!isInitialized) {
+    return <LoadingScreen message="Initializing app..." />;
   }
 
-  if (error) {
+  if (
+    loading &&
+    isAuthenticated &&
+    (loadingModal === "login" || loadingModal === "signup")
+  ) {
+    const message =
+      loadingModal === "login"
+        ? "Signing you in..."
+        : "Setting up your account...";
+    return <LoadingScreen message={message} />;
+  }
+
+  // Only show error screen for critical initialization errors
+  if (error && !isInitialized) {
     return (
       <ErrorScreen onRetry={() => console.log("Manual retry triggered")} />
     );

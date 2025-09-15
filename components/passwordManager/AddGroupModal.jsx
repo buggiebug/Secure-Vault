@@ -11,13 +11,27 @@ import {
   View,
 } from "react-native";
 
-const AddGroupModal = ({ visible, onClose, onSave, loading = "loading" }) => {
+const AddGroupModal = ({
+  visible,
+  onClose,
+  onSave,
+  loading = "loading",
+  groups,
+}) => {
   const [groupName, setGroupName] = useState("");
   const [groupIcon, setGroupIcon] = useState("");
 
   const handleSave = async () => {
     if (!groupName.trim()) {
       Alert.alert("Error", "Group name is required");
+      return;
+    }
+    if (
+      groups.some(
+        (g) => g.name.toLowerCase() === groupName.trim().toLowerCase()
+      )
+    ) {
+      Alert.alert("Error", "A group with this name already exists, try another.");
       return;
     }
 
@@ -106,7 +120,10 @@ const AddGroupModal = ({ visible, onClose, onSave, loading = "loading" }) => {
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.saveButton, loading === "loading" && styles.disabledButton]}
+            style={[
+              styles.saveButton,
+              loading === "loading" && styles.disabledButton,
+            ]}
             onPress={handleSave}
             disabled={loading === "loading" ? true : false}
           >

@@ -13,7 +13,12 @@ import {
 // Import API service
 
 import { selectPasswordDetails } from "@/redux/reselect/reselectData";
-import { addGroup, addPassword, deletePassword } from "@/redux/slice/passwordManagerSlice";
+import {
+  addGroup,
+  addPassword,
+  deleteGroup,
+  deletePassword,
+} from "@/redux/slice/passwordManagerSlice";
 import { useDispatch, useSelector } from "react-redux";
 import AddGroupModal from "./AddGroupModal";
 import AddPasswordModal from "./AddPasswordModal";
@@ -24,20 +29,23 @@ import Header from "./Header";
 import PasswordItem from "./PasswordItem";
 
 const PasswordManager = () => {
-  const { groupsData, passwordsData, loadingStatus } = useSelector(
-    selectPasswordDetails
-  );
+  const { groupsData, passwordsData, loadingStatus, loadingModal } =
+    useSelector(selectPasswordDetails);
 
   const dispatch = useDispatch();
 
   const [passwords, setPasswords] = useState([]);
-  const [groups, setGroups] = useState([
+  const defaultGroups = [
     { _id: "all", name: "All", color: "#6C63FF", icon: "📂" },
     { _id: "individual", name: "Individual", color: "#666666", icon: "🙈" },
     { _id: "financial", name: "Financial", color: "#00C851", icon: "💳" },
     { _id: "social", name: "Social Media", color: "#4267B2", icon: "📱" },
     { _id: "mail", name: "Mail", color: "#aa66cc", icon: "📧" },
-  ]);
+  ];
+  const [groups, setGroups] = useState([]);
+  useEffect(() => {
+    setGroups(defaultGroups);
+  }, []);
 
   const [showAddPassword, setShowAddPassword] = useState(false);
   const [showAddGroup, setShowAddGroup] = useState(false);
@@ -151,9 +159,15 @@ const PasswordManager = () => {
     dispatch(addGroup(groupData));
     // setGroups((prev) => [...prev, response.group]);
   };
+  const handleDeleteGroup = async (groupId) => {
+    dispatch(deleteGroup(groupId));
+    setGroups((prev) => prev.filter((p) => p._id !== groupId));
+    setPasswords((prev) => prev.filter((p) => p.group !== groupId));
+    setSelectedGroup("all");
+  };
 
   const handleAddPassword = async (passwordData) => {
-    console.log(passwordData);
+    // console.log(passwordData);
     // Ensure Individual group is selected if no group is specified
     const groupId = passwordData.groupId || "individual";
     passwordData.groupId = groupId;
@@ -213,6 +227,7 @@ const PasswordManager = () => {
         onGroupSelect={setSelectedGroup}
         fadeAnim={fadeAnim}
         slideAnim={slideAnim}
+        handleDeleteGroup={handleDeleteGroup}
       />
 
       {/* Password List */}
@@ -263,6 +278,7 @@ const PasswordManager = () => {
         onSave={handleAddPassword}
         groups={getAvailableGroups()}
         loading={loadingStatus}
+        defaultGroups={defaultGroups}
       />
 
       <AddGroupModal
@@ -270,6 +286,7 @@ const PasswordManager = () => {
         onClose={() => setShowAddGroup(false)}
         onSave={handleAddGroup}
         loading={loadingStatus}
+        groups={groups}
       />
     </View>
   );
