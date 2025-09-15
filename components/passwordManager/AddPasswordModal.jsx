@@ -17,7 +17,7 @@ const AddPasswordModal = ({
   onClose,
   onSave,
   groups,
-  loading = false,
+  loading = "loading",
 }) => {
   const [passwordData, setPasswordData] = useState({
     title: "",
@@ -202,12 +202,12 @@ const AddPasswordModal = ({
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.saveButton, loading && styles.disabledButton]}
+            style={[styles.saveButton, loading==='loading' && styles.disabledButton]}
             onPress={handleSave}
-            disabled={loading}
+            disabled={loading==='loading' ? true : false}
           >
             <Text style={styles.saveButtonText}>
-              {loading ? "⏳ Saving..." : "💾 Save Password"}
+              {loading === "loading" ? "⏳ Saving..." : "💾 Save Password"}
             </Text>
           </TouchableOpacity>
         </View>

@@ -1,5 +1,4 @@
 // components/Header.js
-import { useEffect } from 'react';
 import {
   Animated,
   Platform,
@@ -9,11 +8,6 @@ import {
 } from 'react-native';
 
 const Header = ({ passwordCount, headerAnim }) => {
-  useEffect(() => {
-    // This effect will run when passwordCount changes
-    console.log('Password count updated:', passwordCount);
-  }, [passwordCount]);
-
   return (
     <Animated.View style={[
       styles.header,

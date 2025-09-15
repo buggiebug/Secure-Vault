@@ -11,10 +11,9 @@ import {
 } from "react-native";
 
 // Import API service
-import passwordAPI from "./apiCall";
 
 import { selectPasswordDetails } from "@/redux/reselect/reselectData";
-import { addGroup, addPassword } from "@/redux/slice/passwordManagerSlice";
+import { addGroup, addPassword, deletePassword } from "@/redux/slice/passwordManagerSlice";
 import { useDispatch, useSelector } from "react-redux";
 import AddGroupModal from "./AddGroupModal";
 import AddPasswordModal from "./AddPasswordModal";
@@ -43,7 +42,6 @@ const PasswordManager = () => {
   const [showAddPassword, setShowAddPassword] = useState(false);
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState("all");
-  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Simplified password count state
   const [passwordCount, setPasswordCount] = useState({
@@ -165,8 +163,9 @@ const PasswordManager = () => {
 
   const handleDeletePassword = async (id) => {
     try {
-      await passwordAPI.deletePassword(id);
-      setPasswords((prev) => prev.filter((p) => p.id !== id));
+      // await passwordAPI.deletePassword(id);
+      setPasswords((prev) => prev.filter((p) => p._id !== id));
+      dispatch(deletePassword(id));
     } catch (error) {
       console.error("Error deleting password:", error);
       Alert.alert("Error", "Failed to delete password. Please try again.");
@@ -263,7 +262,7 @@ const PasswordManager = () => {
         onClose={() => setShowAddPassword(false)}
         onSave={handleAddPassword}
         groups={getAvailableGroups()}
-        loading={passwordLoading}
+        loading={loadingStatus}
       />
 
       <AddGroupModal

@@ -53,7 +53,7 @@ const PasswordItem = ({
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => onDelete(item.id),
+          onPress: () => onDelete(item._id),
         },
       ]
     );
@@ -101,7 +101,6 @@ const PasswordItem = ({
         <TouchableOpacity
           onPress={handleDelete}
           style={styles.deleteButton}
-          disabled
         >
           <Text style={styles.deleteText}>×</Text>
         </TouchableOpacity>
@@ -129,7 +128,7 @@ const PasswordItem = ({
             style={styles.passwordToggle}
           >
             <Text style={styles.detailValue}>
-              {showPassword ? item.password : "•".repeat(item.password.length)}
+              {showPassword ? item.password : "🙈".repeat(10)}
             </Text>
             <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
           </TouchableOpacity>
