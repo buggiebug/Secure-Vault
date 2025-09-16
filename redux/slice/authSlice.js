@@ -44,15 +44,23 @@ export const signupUser = createAsyncThunk(
         `/api/auth/signup`,
         credentials
       );
-
-      // Store token immediately if present
       const token = data?.data?.userToken || data?.data?.token;
-      if (token) {
-        await localStorage.setItem("userToken", token);
+      if (!token) {
+        throw new Error("No token received from server");
       }
 
+      // Store token first
+      await localStorage.setItem("userToken", token);
       Notify(data.message, 0);
-      return data;
+
+      // Then get user data to ensure consistency
+      const userResponse = await axiosInstance.get(`/api/auth/user/me`);
+
+      return {
+        ...data,
+        userData: userResponse.data,
+        token,
+      };
     } catch (error) {
       const err = error?.response?.data?.message || error?.message;
       Notify(err, 1);
@@ -89,14 +97,13 @@ export const loginUser = createAsyncThunk(
       if (!token) {
         throw new Error("No token received from server");
       }
-      
+
       // Store token first
       await localStorage.setItem("userToken", token);
       Notify(data.message, 0);
 
       // Then get user data to ensure consistency
       const userResponse = await axiosInstance.get(`/api/auth/user/me`);
-
 
       return {
         ...data,
@@ -165,25 +172,48 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-// Get User - FIXED with better error handling
 export const getUser = createAsyncThunk(
   "auth/getUser",
   async (_, { rejectWithValue }) => {
     try {
+      // Add timeout for the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
       const token = await localStorage.getItem("userToken");
       if (!token) {
+        clearTimeout(timeoutId);
         return rejectWithValue("No token found");
       }
 
-      const { data } = await axiosInstance.get(`/api/auth/user/me`);
+      console.log("GetUser: Making API request...");
+      const { data } = await axiosInstance.get(`/api/auth/user/me`, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      console.log("GetUser: API request successful");
       return data;
     } catch (error) {
-      const err = error?.response?.data?.message || error?.message;
-      console.error("Get user error:", err);
+      const err =
+        error?.response?.data?.message || error?.message || "Network error";
+      console.error("GetUser: Error occurred:", err);
 
-      // If token is invalid, remove it
+      // Handle different types of errors
+      if (error.name === "AbortError") {
+        console.error("GetUser: Request timeout");
+        return rejectWithValue(
+          "Request timeout - please check your connection"
+        );
+      }
+
       if (error?.response?.status === 401 || error?.response?.status === 403) {
-        await localStorage.removeItem("userToken");
+        console.log("GetUser: Invalid token, removing...");
+        try {
+          await localStorage.removeItem("userToken");
+        } catch (removeError) {
+          console.warn("GetUser: Failed to remove token:", removeError);
+        }
       }
 
       return rejectWithValue(err);
@@ -216,22 +246,87 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
-
-// Initialize auth state
 export const initializeAuth = createAsyncThunk(
   "auth/initializeAuth",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const token = await localStorage.getItem("userToken");
-      if (token) {
-        // If token exists, get user data
-        const result = await dispatch(getUser()).unwrap();
-        return { hasToken: true, userData: result };
-      } else {
-        return { hasToken: false, userData: null };
-      }
+      // console.log("InitAuth: Starting initialization...");
+
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Initialization timeout")), 10000); // 10 second timeout
+      });
+
+      const initPromise = async () => {
+        try {
+          // Check if localStorage is available
+          if (typeof localStorage === "undefined") {
+            console.log(
+              "InitAuth: localStorage not available, assuming fresh start"
+            );
+            return { hasToken: false, userData: null };
+          }
+
+          const token = await localStorage.getItem("userToken");
+          console.log(
+            "InitAuth: Token check result:",
+            token ? "Found" : "Not found"
+          );
+
+          if (token) {
+            // console.log("InitAuth: Token found, getting user data...");
+
+            try {
+              // Try to get user data with the existing token
+              const result = await dispatch(getUser()).unwrap();
+              // console.log("InitAuth: User data retrieved successfully");
+              return { hasToken: true, userData: result };
+            } catch (getUserError) {
+              console.log(
+                "InitAuth: Failed to get user data, token may be invalid:",
+                getUserError
+              );
+
+              // If token is invalid, remove it and start fresh
+              try {
+                await localStorage.removeItem("userToken");
+                // console.log("InitAuth: Removed invalid token");
+              } catch (removeError) {
+                console.warn(
+                  "InitAuth: Failed to remove invalid token:",
+                  removeError
+                );
+              }
+
+              return { hasToken: false, userData: null };
+            }
+          } else {
+            console.log("InitAuth: No token found, user needs to login");
+            return { hasToken: false, userData: null };
+          }
+        } catch (error) {
+          console.error("InitAuth: Error in initialization process:", error);
+
+          // Try to clean up any corrupted state
+          try {
+            await localStorage.removeItem("userToken");
+          } catch (cleanupError) {
+            console.warn("InitAuth: Cleanup failed:", cleanupError);
+          }
+
+          return { hasToken: false, userData: null };
+        }
+      };
+
+      // Race between initialization and timeout
+      const result = await Promise.race([initPromise(), timeoutPromise]);
+
+      // console.log("InitAuth: Initialization completed:", result);
+      return result;
     } catch (error) {
-      console.error("Initialize auth error:", error);
+      console.error("InitAuth: Critical initialization error:", error);
+
+      // Always return a safe state rather than crashing
       return { hasToken: false, userData: null };
     }
   }

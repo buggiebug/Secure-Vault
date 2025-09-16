@@ -15,7 +15,6 @@ export default function Auth() {
       <StatusBar
         animated={true}
         backgroundColor="black"
-        barStyle={"light-content"}
       />
       {switchLoginSignup === "login" && (
         <LoginScreen handleSwitchLoginSignup={handleSwitchLoginSignup} />

@@ -1,4 +1,5 @@
 // components/PasswordItem.js
+import { Link } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -58,9 +59,27 @@ const PasswordItem = ({
       ]
     );
   };
-
   const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+    if (showPassword) {
+      // Already visible → just hide it
+      setShowPassword(false);
+      return;
+    }
+
+    Alert.alert(
+      "View Password",
+      "Are you sure you want to view your saved password?",
+      [
+        {
+          text: "Yes",
+          onPress: () => setShowPassword(true),
+        },
+        {
+          text: "No",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   return (
@@ -98,10 +117,7 @@ const PasswordItem = ({
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={handleDelete}
-          style={styles.deleteButton}
-        >
+        <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
           <Text style={styles.deleteText}>×</Text>
         </TouchableOpacity>
       </View>
@@ -111,13 +127,6 @@ const PasswordItem = ({
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>👤 Username:</Text>
             <Text style={styles.detailValue}>{item.username}</Text>
-          </View>
-        ) : null}
-
-        {item.website ? (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>🌐 Website:</Text>
-            <Text style={styles.detailValue}>{item.website}</Text>
           </View>
         ) : null}
 
@@ -133,6 +142,19 @@ const PasswordItem = ({
             <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
           </TouchableOpacity>
         </View>
+
+        {item.website ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>🌐 Website:</Text>
+            <Link
+              href={item.website}
+              style={[styles.detailValue, styles.websiteLink]}
+              numberOfLines={1}
+            >
+              {item.website}
+            </Link>
+          </View>
+        ) : null}
 
         {item.notes ? (
           <View style={styles.detailRow}>
@@ -234,6 +256,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#fff",
     fontWeight: "bold",
+  },
+  websiteLink: {
+    textDecorationLine: "underline",
+    color: "#3b3299a4",
   },
 });
 
