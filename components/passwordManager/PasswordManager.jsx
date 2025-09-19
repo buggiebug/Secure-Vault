@@ -29,9 +29,9 @@ import Header from "./Header";
 import PasswordItem from "./PasswordItem";
 
 const PasswordManager = () => {
-  const { groupsData, passwordsData, loadingStatus, loadingModal } =
-    useSelector(selectPasswordDetails);
-
+  const { groupsData, passwordsData, loadingStatus } = useSelector(
+    selectPasswordDetails
+  );
   const dispatch = useDispatch();
 
   const [passwords, setPasswords] = useState([]);
