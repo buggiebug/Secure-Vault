@@ -15,7 +15,7 @@ import {
 import { useDispatch } from "react-redux";
 
 const LoginScreen = ({ handleSwitchLoginSignup }) => {
-  const [loginMethod, setLoginMethod] = useState("email");
+  const [loginMethod, setLoginMethod] = useState("mobile");
   const [loginFormState, setLoginFormState] = useState({
     email: "",
     mobile: "",

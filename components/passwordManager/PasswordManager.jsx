@@ -22,17 +22,16 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import AddGroupModal from "./AddGroupModal";
 import AddPasswordModal from "./AddPasswordModal";
-import EmptyState from "./EmptyState";
+import { EmptyState, LoadingState } from "./EmptyState";
 import FloatingActionButton from "./FloatingActionButton";
 import GroupFilters from "./GroupFilter";
 import Header from "./Header";
 import PasswordItem from "./PasswordItem";
 
 const PasswordManager = () => {
-  const { groupsData, passwordsData, loadingStatus } = useSelector(
-    selectPasswordDetails
-  );
   const dispatch = useDispatch();
+  const { groupsData, passwordsData, loadingStatus, loadingModal } =
+    useSelector(selectPasswordDetails);
 
   const [passwords, setPasswords] = useState([]);
   const defaultGroups = [
@@ -229,6 +228,12 @@ const PasswordManager = () => {
         slideAnim={slideAnim}
         handleDeleteGroup={handleDeleteGroup}
       />
+
+      {loadingStatus === "loading" && loadingModal === "fetchPasswords" && (
+        <View style={{}}>
+          <LoadingState fadeAnim={fadeAnim} />
+        </View>
+      )}
 
       {/* Password List */}
       <Animated.View

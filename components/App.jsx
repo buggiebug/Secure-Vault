@@ -4,22 +4,17 @@ import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import Auth from "./auth/Auth";
+import useFetchData from "./auth/useAuth";
 
 export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const dispatch = useDispatch();
 
   // Get auth state from Redux
-  const { isLoggedIn, userData, loadingStatus, loadingModal } = useSelector(
-    (state) => ({
-      isLoggedIn: state.auth.isLoggedIn,
-      userData: state.auth.userData,
-      loadingStatus: state.auth.loadingStatus,
-      loadingModal: state.auth.loadingModal,
-    })
-  );
+  const { isLoggedInUser, userData, loadingStatus, loadingModal } =
+    useFetchData();
 
   // Initialize authentication check only once
   useEffect(() => {
@@ -41,7 +36,7 @@ export default function App() {
     };
 
     initializeAuth();
-  }, []); // Empty dependency array - runs only once
+  }, [isLoggedInUser]); // Empty dependency array - runs only once
 
   // Handle getUser response
   useEffect(() => {
@@ -73,7 +68,7 @@ export default function App() {
   }
 
   // Show Auth screen if not authenticated
-  if (!isLoggedIn || !userData) {
+  if (!isLoggedInUser || !Object.keys(userData).length) {
     return <Auth />;
   }
 

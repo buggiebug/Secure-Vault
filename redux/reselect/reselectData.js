@@ -7,8 +7,7 @@ export const selectUserDetails = createSelector(
     isLoggedInUser: userDetails?.isLoggedIn,
     loadingStatus: userDetails?.loadingStatus,
     loadingModal: userDetails?.loadingModal,
-    userData: userDetails?.userData,
-    myActivity: userDetails?.getMyActivity,
+    userData: userDetails?.userData || {},
   })
 );
 
@@ -18,8 +17,8 @@ export const selectPasswordDetails = createSelector(
   (password) => ({
     groupsData: password?.groups || [],
     passwordsData: password?.passwords || [],
-    loadingModal: password?.loadingModal || "",
     loadingStatus: password?.loadingStatus || "idle",
+    loadingModal: password?.loadingModal || "",
     error: password?.error || null,
   })
 );

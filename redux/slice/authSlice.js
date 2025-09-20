@@ -7,7 +7,6 @@ import axiosInstance from "../api/axiosInstance";
 const initialState = {
   isLoggedIn: false,
   userData: {},
-  getMyActivity: [],
   loadingStatus: "idle",
   loadingModal: "",
   error: null,
@@ -79,6 +78,7 @@ export const forgotPassword = createAsyncThunk(
 // Logout User...
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   console.log("Loggout triggred");
+  Notify("Logged out successfully", 0);
   await localStorage.removeItem("userToken");
   return { isLoggedIn: false };
 });
@@ -95,6 +95,23 @@ export const getUser = createAsyncThunk("auth/getUser", async () => {
     return false;
   }
 });
+
+// Verify Pin...
+export const verifyPassword = createAsyncThunk(
+  "auth/verifyPassword",
+  async (credentials) => {
+    try {
+      const { data } = await axiosInstance.post(
+        `/api/auth/user/verify-pin`,
+        credentials
+      );
+      return data;
+    } catch (error) {
+      const err = error?.response?.data || error?.message;
+      return err;
+    }
+  }
+);
 
 // Update User...
 export const updateUserProfile = createAsyncThunk(

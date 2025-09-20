@@ -1,16 +1,24 @@
-// components/GroupFilter.js
-import { useRef } from "react";
+import { verifyPassword } from "@/redux/slice/authSlice";
+import { useRef, useState } from "react";
 import {
   Alert,
   Animated,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
+  Modal,
+  View,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import Notify from "../utils/Notify";
 
 const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
   const filterAnim = useRef(new Animated.Value(1)).current;
+  const [showModal, setShowModal] = useState(false);
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
 
   const handlePress = () => {
     Animated.sequence([
@@ -29,7 +37,7 @@ const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
   };
 
   const handleLongPress = () => {
-    // Don't allow deleting the "All" group
+    // Don’t allow deleting the "All" group
     if (group._id === "all") return;
 
     if (["individual", "financial", "social", "mail"].includes(group._id)) {
@@ -41,52 +49,95 @@ const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
           {
             text: "Yes, Delete",
             style: "destructive",
-            onPress: () => onLongPress(),
+            onPress: () => setShowModal(true), // 🔑 Show password modal
           },
         ]
       );
       return;
     }
 
-    Alert.alert(
-      "Delete Group",
-      `Are you sure you want to delete "${group.name}"?\nAll passwords in this group will also be deleted.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes, Delete",
-          style: "destructive",
-          onPress: () => onLongPress(), // ✅ call parent delete function
-        },
-      ]
-    );
+    // For non-default groups → directly ask password
+    setShowModal(true);
+  };
+
+  const confirmDelete = () => {
+    dispatch(verifyPassword({ password }))
+      .unwrap() // ✅ if you're using createAsyncThunk
+      .then((res) => {
+        // ✅ Backend says password is correct
+        // console.log("Password verified:", res);
+        if (res.success !== true) {
+          Notify(res.message || "Incorrect password. Try again.", 1);
+          return;
+        }
+
+        if (res.success === true) {
+          Notify("Password verified. Deleting group...", 0);
+          setShowModal(false);
+          setPassword("");
+          onLongPress();
+        }
+      })
+      .catch((err) => {
+        // ❌ Wrong password or API error
+        console.log("Password check failed:", err);
+        Notify("Incorrect password. Try again.", 1);
+      });
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: filterAnim }] }}>
-      <TouchableOpacity
-        style={[
-          styles.groupFilter,
-          group._id === "all" && styles.allFilter,
-          isSelected && [
-            styles.selectedGroupFilter,
-            { backgroundColor: group._id === "all" ? "#6C63FF" : group.color },
-          ],
-        ]}
-        onPress={handlePress}
-        onLongPress={handleLongPress} // ✅ attach long press
-      >
-        <Text style={styles.groupIcon}>{group.icon}</Text>
-        <Text
+    <>
+      <Animated.View style={{ transform: [{ scale: filterAnim }] }}>
+        <TouchableOpacity
           style={[
-            styles.groupFilterText,
-            isSelected && styles.selectedGroupFilterText,
+            styles.groupFilter,
+            group._id === "all" && styles.allFilter,
+            isSelected && [
+              styles.selectedGroupFilter,
+              {
+                backgroundColor: group._id === "all" ? "#6C63FF" : group.color,
+              },
+            ],
           ]}
+          onPress={handlePress}
+          onLongPress={handleLongPress} // ✅ attach long press
         >
-          {group.name}
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
+          <Text style={styles.groupIcon}>{group.icon}</Text>
+          <Text
+            style={[
+              styles.groupFilterText,
+              isSelected && styles.selectedGroupFilterText,
+            ]}
+          >
+            {group.name}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Password confirmation modal */}
+      <Modal transparent visible={showModal} animationType="fade">
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>Enter Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+            />
+            <View style={styles.actions}>
+              <TouchableOpacity onPress={() => setShowModal(false)}>
+                <Text style={styles.cancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={confirmDelete}>
+                <Text style={styles.delete}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
 
@@ -116,7 +167,7 @@ const GroupFilters = ({
             group={group}
             isSelected={selectedGroup === group._id}
             onPress={() => onGroupSelect(group._id)}
-            onLongPress={() => handleDeleteGroup(group._id)} // ✅ pass down
+            onLongPress={() => handleDeleteGroup(group._id)}
           />
         ))}
       </ScrollView>
@@ -173,6 +224,30 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  // 🔑 Modal styles
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modal: {
+    width: "80%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 20,
+  },
+  actions: { flexDirection: "row", justifyContent: "flex-end" },
+  cancel: { fontSize: 16, marginRight: 20, color: "gray" },
+  delete: { fontSize: 16, fontWeight: "bold", color: "red" },
 });
 
 export { GroupFilter };

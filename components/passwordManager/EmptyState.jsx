@@ -1,16 +1,9 @@
 // components/EmptyState.js
-import {
-    Animated,
-    StyleSheet,
-    Text
-} from 'react-native';
+import { Animated, StyleSheet, Text } from "react-native";
 
 const EmptyState = ({ fadeAnim }) => {
   return (
-    <Animated.View style={[
-      styles.emptyContainer,
-      { opacity: fadeAnim }
-    ]}>
+    <Animated.View style={[styles.emptyContainer, { opacity: fadeAnim }]}>
       <Text style={styles.emptyIcon}>🔒</Text>
       <Text style={styles.emptyTitle}>No passwords yet</Text>
       <Text style={styles.emptyText}>
@@ -20,10 +13,20 @@ const EmptyState = ({ fadeAnim }) => {
   );
 };
 
+const LoadingState = ({ fadeAnim }) => {
+  return (
+    <Animated.View style={[styles.emptyContainer, { opacity: fadeAnim }]}>
+      <Text style={styles.emptyIcon}>🔒</Text>
+      <Text style={styles.emptyTitle}>Loading </Text>
+      <Text style={styles.emptyText}>Loading your passwords...</Text>
+    </Animated.View>
+  );
+};
+
 const styles = StyleSheet.create({
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
   },
   emptyIcon: {
@@ -32,16 +35,16 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
     paddingHorizontal: 40,
   },
 });
 
-export default EmptyState;
+export { EmptyState, LoadingState };

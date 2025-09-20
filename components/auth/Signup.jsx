@@ -1,5 +1,5 @@
 import { signupUser } from "@/redux/slice/authSlice";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -23,10 +23,13 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
     mobile: "",
     password: "",
   });
+  const [pinInputs, setPinInputs] = useState(["", "", "", "", "", ""]);
   const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const dispatch = useDispatch();
+  const pinRefs = useRef([]);
+  const [focusedPinIndex, setFocusedPinIndex] = useState(null);
 
   useEffect(() => {
     const { name, email, mobile, password } = signupForm;
@@ -74,6 +77,54 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
     }
   };
 
+  const handlePinKeyPress = (index, key) => {
+    if (key === "Backspace" && !pinInputs[index] && index > 0) {
+      pinRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePinChange = (index, value) => {
+    if (value.length > 1) return;
+    const newPinInputs = [...pinInputs];
+    newPinInputs[index] = value;
+    setPinInputs(newPinInputs);
+    const fullPin = newPinInputs.join("");
+    setSignupForm({ ...signupForm, password: fullPin });
+    if (value && index < 5) {
+      pinRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const renderPinInputs = () => (
+    <View style={styles.pinContainer}>
+      {pinInputs.map((pin, index) => (
+        <View key={index} style={styles.pinInputWrapper}>
+          <TextInput
+            ref={(ref) => (pinRefs.current[index] = ref)}
+            style={[
+              styles.pinInput,
+              pin && styles.pinInputFilled,
+              focusedPinIndex === index && styles.pinInputFocused,
+            ]}
+            value={pin}
+            onChangeText={(value) => handlePinChange(index, value)}
+            onKeyPress={({ nativeEvent: { key } }) =>
+              handlePinKeyPress(index, key)
+            }
+            keyboardType="numeric"
+            maxLength={1}
+            selectTextOnFocus
+            textAlign="center"
+            placeholderTextColor="#a0a0a0"
+            onFocus={() => setFocusedPinIndex(index)}
+            onBlur={() => setFocusedPinIndex(null)}
+            accessibilityLabel={`PIN digit ${index + 1}`}
+          />
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -98,7 +149,7 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
               <Text style={styles.label}>Full Name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your full name"
+                placeholder="buggIe BUG"
                 placeholderTextColor="#bbb"
                 value={signupForm.name}
                 onChangeText={(text) =>
@@ -151,7 +202,7 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
                 <Text style={styles.label}>Mobile Number</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="9120226043"
+                  placeholder="91 2022 6043"
                   placeholderTextColor="#bbb"
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -183,7 +234,7 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
               </View>
             )}
 
-            <View style={styles.inputContainer}>
+            {/* <View style={styles.inputContainer}>
               <Text style={styles.label}>6-Digit PIN</Text>
               <View style={styles.passwordWrapper}>
                 <TextInput
@@ -212,6 +263,12 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
                   </Text>
                 </TouchableOpacity>
               </View>
+            </View> */}
+
+            {/* PIN Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>6-Digit PIN</Text>
+              {renderPinInputs()}
             </View>
 
             <TouchableOpacity
@@ -336,6 +393,39 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
     paddingHorizontal: 10,
+  },
+
+
+   pinContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  pinInputWrapper: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  pinInput: {
+    backgroundColor: "#fafafa",
+    borderRadius: 8,
+    paddingVertical: 12,
+    fontSize: 20,
+    fontWeight: "600",
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    color: "#333",
+    minHeight: 48,
+  },
+  pinInputFilled: {
+    borderColor: "#3366FF",
+  },
+  pinInputFocused: {
+    borderColor: "#3366FF",
+    shadowColor: "#3366FF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 2,
   },
 });
 
