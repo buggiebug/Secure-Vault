@@ -13,16 +13,6 @@ const EmptyState = ({ fadeAnim }) => {
   );
 };
 
-const LoadingState = ({ fadeAnim }) => {
-  return (
-    <Animated.View style={[styles.emptyContainer, { opacity: fadeAnim }]}>
-      <Text style={styles.emptyIcon}>🔒</Text>
-      <Text style={styles.emptyTitle}>Loading </Text>
-      <Text style={styles.emptyText}>Loading your passwords...</Text>
-    </Animated.View>
-  );
-};
-
 const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: "center",
@@ -47,4 +37,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { EmptyState, LoadingState };
+export { EmptyState };

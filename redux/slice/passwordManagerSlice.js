@@ -159,7 +159,9 @@ const passwordManager = createSlice({
         state.loadingModal = "deleteGroup";
         state.loadingStatus = "succeeded";
         state.groups = state.groups.filter((g) => g._id !== action.payload);
-        state.passwords = state.passwords.filter((p) => p.group !== action.payload);
+        state.passwords = state.passwords.filter(
+          (p) => p.group !== action.payload
+        );
       })
       .addCase(deleteGroup.rejected, (state, action) => {
         state.loadingModal = "deleteGroup";
@@ -182,8 +184,18 @@ const passwordManager = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(addPassword.pending, (state, action) => {
+        state.loadingStatus = "loading";
+        state.loadingModal = "addPassword";
+      })
       .addCase(addPassword.fulfilled, (state, action) => {
+        state.loadingStatus = "succeeded";
+        state.loadingModal = "addPassword";
         if (action.payload) state.passwords.push(action.payload);
+      })
+      .addCase(addPassword.rejected, (state, action) => {
+        state.loadingStatus = "failed";
+        state.loadingModal = "addPassword";
       })
       .addCase(deletePassword.fulfilled, (state, action) => {
         state.passwords = state.passwords.filter(

@@ -18,7 +18,8 @@ const AddPasswordModal = ({
   onSave,
   groups,
   loading = "loading",
-  defaultGroups
+  loadingModal,
+  defaultGroups,
 }) => {
   const [passwordData, setPasswordData] = useState({
     title: "",
@@ -28,6 +29,8 @@ const AddPasswordModal = ({
     notes: "",
     groupId: "",
   });
+
+  const [viewPasswordState, setViewPasswordState] = useState(false);
 
   // Auto-select Individual category when groups are available
   useEffect(() => {
@@ -54,6 +57,8 @@ const AddPasswordModal = ({
     } catch (error) {
       Alert.alert("Error", "Failed to save password. Please try again.");
     }
+
+    setViewPasswordState(false);
   };
 
   const handleClose = () => {
@@ -69,6 +74,7 @@ const AddPasswordModal = ({
       groupId: individualGroup?._id || "",
     });
     onClose();
+    setViewPasswordState(false);
   };
 
   // Filter out "All" group from dropdown options since it's not a real category
@@ -127,11 +133,21 @@ const AddPasswordModal = ({
 
           {/* Password */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>🔒 Password</Text>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Text style={styles.inputLabel}>🔒 Password</Text>
+              <Text
+                style={[styles.inputLabel, styles.viewPasswordToggle]}
+                onPress={() => setViewPasswordState(!viewPasswordState)}
+              >
+                {viewPasswordState ? "🙉" : "🙈"}
+              </Text>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="Enter your password"
-              secureTextEntry
+              secureTextEntry={!viewPasswordState}
               value={passwordData.password}
               onChangeText={(text) =>
                 setPasswordData({ ...passwordData, password: text })
@@ -203,12 +219,23 @@ const AddPasswordModal = ({
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.saveButton, loading==='loading' && styles.disabledButton]}
+            style={[
+              styles.saveButton,
+              loading === "loading" &&
+                loadingModal === "addPassword" &&
+                styles.disabledButton,
+            ]}
             onPress={handleSave}
-            disabled={loading==='loading' ? true : false}
+            disabled={
+              loading === "loading" && loadingModal === "addPassword"
+                ? true
+                : false
+            }
           >
             <Text style={styles.saveButtonText}>
-              {loading === "loading" ? "⏳ Saving..." : "💾 Save Password"}
+              {loading === "loading" && loadingModal === "addPassword"
+                ? "⏳ Saving..."
+                : "💾 Save Password"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -275,6 +302,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#fff",
+    color: "#333",
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
@@ -431,6 +459,17 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
     color: "#333",
+  },
+
+  viewPasswordToggle: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 10,
+    fontSize: 18,
+    position: "absolute",
+    right: 10,
+    top: 35,
+    zIndex: 1,
   },
 });
 

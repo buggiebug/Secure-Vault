@@ -14,7 +14,13 @@ import {
 import { useDispatch } from "react-redux";
 import Notify from "../utils/Notify";
 
-const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
+const GroupFilter = ({
+  totalGroups,
+  group,
+  isSelected,
+  onPress,
+  onLongPress,
+}) => {
   const filterAnim = useRef(new Animated.Value(1)).current;
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState("");
@@ -61,6 +67,14 @@ const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
   };
 
   const confirmDelete = () => {
+    if(password.trim().length === 0) {
+      Notify("Please enter your PIN to confirm.", 0);
+      return;
+    }
+    if(password.trim().length < 6) {
+      Notify("PIN should be at least 6 digits.", 0);
+      return;
+    }
     dispatch(verifyPassword({ password }))
       .unwrap() // ✅ if you're using createAsyncThunk
       .then((res) => {
@@ -118,20 +132,26 @@ const GroupFilter = ({ group, isSelected, onPress, onLongPress }) => {
       <Modal transparent visible={showModal} animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Enter Password</Text>
+            <Text style={styles.modalTitle}>Confirm PIN 😶🙄🤐</Text>
+            <Text style={styles.modalDesc}>
+              This group {"(" + group.name + ")"} conatins{" "}
+              {totalGroups.length || 0} passwords. Are you sure want to delete
+              the group if yes enter your PIN to confirm? else cancel.
+            </Text>
             <TextInput
               style={styles.input}
               secureTextEntry
-              placeholder="Enter your password"
+              placeholder="Enter your PIN"
               value={password}
               onChangeText={setPassword}
+              inputMode="numeric"
             />
             <View style={styles.actions}>
               <TouchableOpacity onPress={() => setShowModal(false)}>
                 <Text style={styles.cancel}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={confirmDelete}>
-                <Text style={styles.delete}>Delete</Text>
+                <Text style={styles.delete}>Delete Group</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -164,6 +184,7 @@ const GroupFilters = ({
         {groups.map((group) => (
           <GroupFilter
             key={group._id}
+            totalGroups={groups}
             group={group}
             isSelected={selectedGroup === group._id}
             onPress={() => onGroupSelect(group._id)}
@@ -237,17 +258,38 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  modalTitle: { fontSize: 18, fontWeight: "bold" },
+  modalDesc: {
+    fontSize: 14,
+    fontWeight: "thin",
+    marginBottom: 10,
+    color: "#C59560",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 10,
     marginBottom: 20,
+    color: "#333",
   },
   actions: { flexDirection: "row", justifyContent: "flex-end" },
-  cancel: { fontSize: 16, marginRight: 20, color: "gray" },
-  delete: { fontSize: 16, fontWeight: "bold", color: "red" },
+  cancel: {
+    fontSize: 16,
+    marginRight: 20,
+    color: "white",
+    backgroundColor: "gray",
+    padding: 10,
+    borderRadius: 15,
+  },
+  delete: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+    backgroundColor: "red",
+    padding: 10,
+    borderRadius: 15,
+  },
 });
 
 export { GroupFilter };

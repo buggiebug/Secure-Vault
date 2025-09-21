@@ -36,7 +36,7 @@ export default function App() {
     };
 
     initializeAuth();
-  }, [isLoggedInUser]); // Empty dependency array - runs only once
+  }, [dispatch, isLoggedInUser]);
 
   // Handle getUser response
   useEffect(() => {
@@ -72,16 +72,16 @@ export default function App() {
     return <Auth />;
   }
 
-  // Render main app if authenticated
+  console.log("User is authenticated, rendering main app.");
   return (
-    <Stack key="authenticated-stack">
-      <Stack.Screen
+    <Stack>
+      {/* <Stack.Screen
         name="(tabs)"
         options={{
           title: "",
           headerShown: false,
         }}
-      />
+      /> */}
       <Stack.Screen name="+not-found" />
     </Stack>
   );

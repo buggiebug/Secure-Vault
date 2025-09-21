@@ -16,6 +16,7 @@ const AddGroupModal = ({
   onClose,
   onSave,
   loading = "loading",
+  loadingModal,
   groups,
 }) => {
   const [groupName, setGroupName] = useState("");
@@ -31,7 +32,10 @@ const AddGroupModal = ({
         (g) => g.name.toLowerCase() === groupName.trim().toLowerCase()
       )
     ) {
-      Alert.alert("Error", "A group with this name already exists, try another.");
+      Alert.alert(
+        "Error",
+        "A group with this name already exists, try another."
+      );
       return;
     }
 
@@ -122,13 +126,13 @@ const AddGroupModal = ({
           <TouchableOpacity
             style={[
               styles.saveButton,
-              loading === "loading" && styles.disabledButton,
+              (loading === "loading" && loadingModal === "addGroup") && styles.disabledButton,
             ]}
             onPress={handleSave}
-            disabled={loading === "loading" ? true : false}
+            disabled={(loading === "loading" && loadingModal === "addGroup") ? true : false}
           >
             <Text style={styles.saveButtonText}>
-              {loading === "loading" ? "⏳ Creating..." : "🎉 Create Group"}
+              {(loading === "loading" && loadingModal === "addGroup") ? "⏳ Creating..." : "🎉 Create Group"}
             </Text>
           </TouchableOpacity>
         </View>
