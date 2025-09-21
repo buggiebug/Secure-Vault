@@ -75,13 +75,13 @@ export default function App() {
   console.log("User is authenticated, rendering main app.");
   return (
     <Stack>
-      {/* <Stack.Screen
+      <Stack.Screen
         name="(tabs)"
         options={{
           title: "",
           headerShown: false,
         }}
-      /> */}
+      />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
