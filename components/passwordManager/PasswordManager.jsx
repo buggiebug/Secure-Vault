@@ -16,6 +16,7 @@ import { selectPasswordDetails } from "@/redux/reselect/reselectData";
 import {
   addGroup,
   addPassword,
+  updatePassword,
   deleteGroup,
   deletePassword,
 } from "@/redux/slice/passwordManagerSlice";
@@ -30,9 +31,8 @@ import PasswordItem from "./PasswordItem";
 
 const PasswordManager = () => {
   const dispatch = useDispatch();
-  const { groupsData, passwordsData, loadingStatus, loadingModal } = useSelector(
-    selectPasswordDetails
-  );
+  const { groupsData, passwordsData, loadingStatus, loadingModal } =
+    useSelector(selectPasswordDetails);
 
   const [passwords, setPasswords] = useState([]);
   const defaultGroups = [
@@ -50,6 +50,15 @@ const PasswordManager = () => {
   const [showAddPassword, setShowAddPassword] = useState(false);
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState("all");
+
+  // Edit Password
+  const [editingPassword, setEditingPassword] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const openEditModal = (password) => {
+    setEditingPassword(password);
+    setShowAddPassword(true);
+    setIsEditing(true);
+  };
 
   // Simplified password count state
   const [passwordCount, setPasswordCount] = useState({
@@ -166,12 +175,15 @@ const PasswordManager = () => {
     setSelectedGroup("all");
   };
 
-  const handleAddPassword = async (passwordData) => {
-    // console.log(passwordData);
+  const handleAddPassword = async (passwordData, isUpdated) => {
     // Ensure Individual group is selected if no group is specified
     const groupId = passwordData.groupId || "individual";
     passwordData.groupId = groupId;
-    dispatch(addPassword(passwordData));
+    if (isUpdated) {
+      dispatch(updatePassword(passwordData));
+    } else {
+      dispatch(addPassword(passwordData));
+    }
     // setPasswords((prev) => [...prev, response.password]);
   };
 
@@ -248,6 +260,7 @@ const PasswordManager = () => {
               getGroupName={getGroupName}
               getGroupColor={getGroupColor}
               getGroupIcon={getGroupIcon}
+              openEditModal={openEditModal}
             />
           )}
           style={styles.passwordList}
@@ -280,6 +293,9 @@ const PasswordManager = () => {
         loading={loadingStatus}
         loadingModal={loadingModal}
         defaultGroups={defaultGroups}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        editingPassword={editingPassword}
       />
 
       <AddGroupModal

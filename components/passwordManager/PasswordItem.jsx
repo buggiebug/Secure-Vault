@@ -17,6 +17,7 @@ const PasswordItem = ({
   getGroupName,
   getGroupColor,
   getGroupIcon,
+  openEditModal,
 }) => {
   const firstIcon =
     String(getGroupIcon(item.group)).match(/\p{Extended_Pictographic}/u)?.[0] ||
@@ -43,22 +44,43 @@ const PasswordItem = ({
     ]).start();
   }, []);
 
-  // Removed the incorrect auto-selection logic that was here
-
-  const handleDelete = () => {
+  const handlePasssword = () => {
     Alert.alert(
-      "Delete Password",
-      "Are you sure you want to delete this password?",
+      `Manage Password`,
+      "Modifying or deleting saved passwords may lead to data loss. Are you sure you want to proceed?",
       [
-        { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => onDelete(item._id),
+          onPress: () => handleDelete(item._id),
         },
+        {
+          text: "Edit",
+          style: "default",
+          onPress: () => openEditModal(item),
+        },
+        { text: "Cancel", style: "cancel", isPreferred: true },
       ]
     );
   };
+
+  // Handle delete with confirmation
+  const handleDelete = (itemId) => {
+    Alert.alert(
+      `Delete Password`,
+      "Are you sure you want to delete this password? This action cannot be undone.",
+      [
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(itemId),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]
+    );
+  };
+
+  // Toggle password visibility with confirmation
   const togglePasswordVisibility = () => {
     if (showPassword) {
       // Already visible → just hide it
@@ -83,87 +105,86 @@ const PasswordItem = ({
   };
 
   return (
-    <Animated.View
-      style={[
-        styles.passwordItem,
-        {
-          opacity: itemAnim,
-          transform: [
-            { scale: scaleItemAnim },
-            {
-              translateY: itemAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [50, 0],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
-      <View style={styles.passwordHeader}>
-        <View style={styles.passwordTitleContainer}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: getGroupColor(item.group) },
-            ]}
-          >
-            <Text style={styles.iconText}>{firstIcon}</Text>
-          </View>
-          <View style={styles.passwordInfo}>
-            <Text style={styles.passwordTitle}>{item.title}</Text>
-            <Text style={styles.groupLabel}>
-              {item.group && getGroupName(item.group)}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-          <Text style={styles.deleteText}>×</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.passwordDetails}>
-        {item.username ? (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>👤 Username:</Text>
-            <Text style={styles.detailValue}>{item.username}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>🔒 Password:</Text>
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.passwordToggle}
-          >
-            <Text style={styles.detailValue}>
-              {showPassword ? item.password : "🙈".repeat(10)}
-            </Text>
-            <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {item.website ? (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>🌐 Website:</Text>
-            <Link
-              href={item.website}
-              style={[styles.detailValue, styles.websiteLink]}
-              numberOfLines={1}
+    <TouchableOpacity activeOpacity={0.8} onLongPress={handlePasssword}>
+      <Animated.View
+        style={[
+          styles.passwordItem,
+          {
+            opacity: itemAnim,
+            transform: [
+              { scale: scaleItemAnim },
+              {
+                translateY: itemAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.passwordHeader}>
+          <View style={styles.passwordTitleContainer}>
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: getGroupColor(item.group) },
+              ]}
             >
-              {item.website}
-            </Link>
+              <Text style={styles.iconText}>{firstIcon}</Text>
+            </View>
+            <View style={styles.passwordInfo}>
+              <Text style={styles.passwordTitle}>{item.title}</Text>
+              <Text style={styles.groupLabel}>
+                {item.group && getGroupName(item.group)}
+              </Text>
+            </View>
           </View>
-        ) : null}
+        </View>
 
-        {item.notes ? (
+        <View style={styles.passwordDetails}>
+          {item.username ? (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>👤 Username:</Text>
+              <Text style={styles.detailValue}>{item.username}</Text>
+            </View>
+          ) : null}
+
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>📝 Notes:</Text>
-            <Text style={styles.detailValue}>{item.notes}</Text>
+            <Text style={styles.detailLabel}>🔒 Password:</Text>
+            <TouchableOpacity
+              onPress={togglePasswordVisibility}
+              style={styles.passwordToggle}
+            >
+              <Text style={styles.detailValue}>
+                {showPassword ? item.password : "🙈".repeat(10)}
+              </Text>
+              <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
+            </TouchableOpacity>
           </View>
-        ) : null}
-      </View>
-    </Animated.View>
+
+          {item.website ? (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>🌐 Website:</Text>
+              <Link
+                href={item.website}
+                style={[styles.detailValue, styles.websiteLink]}
+                numberOfLines={1}
+              >
+                {item.website}
+              </Link>
+            </View>
+          ) : null}
+
+          {item.notes ? (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>📝 Notes:</Text>
+              <Text style={styles.detailValue}>{item.notes}</Text>
+            </View>
+          ) : null}
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -243,19 +264,6 @@ const styles = StyleSheet.create({
   eyeIcon: {
     marginLeft: 10,
     fontSize: 16,
-  },
-  deleteButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#ff4444",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
   },
   websiteLink: {
     textDecorationLine: "underline",

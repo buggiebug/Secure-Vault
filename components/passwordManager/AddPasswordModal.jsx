@@ -20,6 +20,9 @@ const AddPasswordModal = ({
   loading = "loading",
   loadingModal,
   defaultGroups,
+  isEditing,
+  setIsEditing,
+  editingPassword,
 }) => {
   const [passwordData, setPasswordData] = useState({
     title: "",
@@ -52,7 +55,10 @@ const AddPasswordModal = ({
     }
 
     try {
-      await onSave(passwordData);
+      if (isEditing) {
+        passwordData._id = editingPassword._id;
+      }
+      await onSave(passwordData, isEditing);
       handleClose();
     } catch (error) {
       Alert.alert("Error", "Failed to save password. Please try again.");
@@ -75,10 +81,27 @@ const AddPasswordModal = ({
     });
     onClose();
     setViewPasswordState(false);
+    setIsEditing(false);
   };
 
   // Filter out "All" group from dropdown options since it's not a real category
   const availableGroups = groups?.filter((group) => group.name !== "All") || [];
+
+  // Handle editing existing password
+  useEffect(() => {
+    // Find Individual group for reset
+    const individualGroup = groups?.find((g) => g.name === "Individual");
+    if (isEditing && editingPassword && Object.keys(editingPassword).length) {
+      setPasswordData({
+        title: editingPassword.title || "",
+        username: editingPassword.username || "",
+        password: editingPassword.password || "",
+        website: editingPassword.website || "",
+        notes: editingPassword.notes || "",
+        groupId: editingPassword.group || individualGroup || "",
+      });
+    }
+  }, [editingPassword, groups, isEditing]);
 
   return (
     <Modal
@@ -90,7 +113,9 @@ const AddPasswordModal = ({
         {/* HEADER */}
         <View style={styles.modalHeader}>
           <View>
-            <Text style={styles.modalTitle}>Add New Password</Text>
+            <Text style={styles.modalTitle}>
+              {isEditing ? "Update" : "Add New"} Password
+            </Text>
             <Text style={styles.modalSubtitle}>Secure your digital life</Text>
           </View>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -222,20 +247,25 @@ const AddPasswordModal = ({
             style={[
               styles.saveButton,
               loading === "loading" &&
-                loadingModal === "addPassword" &&
+                (loadingModal === "addPassword" ||
+                  loadingModal === "updatePassword") &&
                 styles.disabledButton,
             ]}
             onPress={handleSave}
             disabled={
-              loading === "loading" && loadingModal === "addPassword"
+              loading === "loading" &&
+              (loadingModal === "addPassword" ||
+                loadingModal === "updatePassword")
                 ? true
                 : false
             }
           >
             <Text style={styles.saveButtonText}>
-              {loading === "loading" && loadingModal === "addPassword"
-                ? "⏳ Saving..."
-                : "💾 Save Password"}
+              {loading === "loading" &&
+              (loadingModal === "addPassword" ||
+                loadingModal === "updatePassword")
+                ? `${isEditing ? "⏳ Updating..." : "⏳ Saving..."}`
+                : `${isEditing ? "💾 Update Password" : "💾 Save Password"}`}
             </Text>
           </TouchableOpacity>
         </View>

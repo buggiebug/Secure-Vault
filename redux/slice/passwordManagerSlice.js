@@ -80,6 +80,26 @@ export const addPassword = createAsyncThunk(
   }
 );
 
+// Update Password
+export const updatePassword = createAsyncThunk(
+  "pm/updatePassword",
+  async (passwordData, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.patch(
+        `/api/pm/passwords/${passwordData._id}`,
+        passwordData
+      );
+      Notify("Password updated successfully", 0);
+      return data?.data || {};
+    } catch (error) {
+      const err = error?.response?.data?.message || error?.message;
+      Notify(err, 1);
+      return rejectWithValue(err);
+    }
+  }
+);
+
+
 // Get Passwords
 export const fetchPasswords = createAsyncThunk(
   "pm/fetchPasswords",
@@ -196,6 +216,22 @@ const passwordManager = createSlice({
       .addCase(addPassword.rejected, (state, action) => {
         state.loadingStatus = "failed";
         state.loadingModal = "addPassword";
+      })
+      .addCase(updatePassword.pending, (state, action) => {
+        state.loadingStatus = "loading";
+        state.loadingModal = "updatePassword";
+      })
+      .addCase(updatePassword.fulfilled, (state, action) => {
+        state.loadingStatus = "succeeded";
+        state.loadingModal = "updatePassword";
+        if (action.payload){
+          state.passwords = state.passwords.filter(p => p._id !== action.payload._id);
+          state.passwords.push(action.payload)
+        };
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        state.loadingStatus = "failed";
+        state.loadingModal = "updatePassword";
       })
       .addCase(deletePassword.fulfilled, (state, action) => {
         state.passwords = state.passwords.filter(
