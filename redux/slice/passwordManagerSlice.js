@@ -99,7 +99,6 @@ export const updatePassword = createAsyncThunk(
   }
 );
 
-
 // Get Passwords
 export const fetchPasswords = createAsyncThunk(
   "pm/fetchPasswords",
@@ -224,10 +223,16 @@ const passwordManager = createSlice({
       .addCase(updatePassword.fulfilled, (state, action) => {
         state.loadingStatus = "succeeded";
         state.loadingModal = "updatePassword";
-        if (action.payload){
-          state.passwords = state.passwords.filter(p => p._id !== action.payload._id);
-          state.passwords.push(action.payload)
-        };
+        if (action.payload) {
+          const index = state.passwords.findIndex(
+            (p) => p._id === action.payload._id
+          );
+
+          if (index !== -1) {
+            // ✅ Update the password at the same index
+            state.passwords[index] = action.payload;
+          }
+        }
       })
       .addCase(updatePassword.rejected, (state, action) => {
         state.loadingStatus = "failed";

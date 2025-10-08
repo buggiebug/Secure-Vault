@@ -57,6 +57,8 @@ const AddPasswordModal = ({
     try {
       if (isEditing) {
         passwordData._id = editingPassword._id;
+        passwordData.group = passwordData.groupId;
+        delete passwordData.groupId;
       }
       await onSave(passwordData, isEditing);
       handleClose();
