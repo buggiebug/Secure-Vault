@@ -184,7 +184,7 @@ const LoginScreen = ({ handleSwitchLoginSignup }) => {
               <TextInput
                 style={styles.input}
                 placeholder={
-                  loginMethod === "email" ? "name@domain.com" : "91 2022 6043"
+                  loginMethod === "email" ? "user@domain.com" : "9120226043"
                 }
                 placeholderTextColor="#a0a0a0"
                 keyboardType={
@@ -225,7 +225,6 @@ const LoginScreen = ({ handleSwitchLoginSignup }) => {
                 handleSwitchLoginSignup("forgotPassword");
               }}
               accessibilityLabel="Forgot PIN"
-              disabled
             >
               <Text style={styles.forgotPinText}>Forgot PIN?</Text>
             </TouchableOpacity>

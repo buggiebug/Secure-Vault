@@ -4,6 +4,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   Image,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -30,7 +32,6 @@ export default function ForgotPassword({ handleSwitchLoginSignup }) {
       Notify("Please enter a valid email address", 0);
       return;
     }
-    // Add your password reset logic here
     dispatch(forgotPassword({ email }));
   };
 
@@ -41,106 +42,121 @@ export default function ForgotPassword({ handleSwitchLoginSignup }) {
   }, [loadingStatus, loadingModal]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("@/assets/images/android-icon-foreground.png")}
-          alt="logo"
-          style={styles.logo}
-        />
-      </View>
-      <Text style={styles.title}>Reset your password</Text>
-      <Text style={styles.subtitle}>
-        Enter your email and we&apos;ll send you a link to reset your password
-      </Text>
-      <Text style={styles.label}>Email address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="name@domain.com"
-        placeholderTextColor="#ccc"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={handleEmailChange}
-      />
-      <TouchableOpacity
-        style={styles.resetButton}
-        activeOpacity={0.8}
-        onPress={handleResetPassword}
-        disabled={
-          (loadingStatus === "loading" && loadingModal === "forgotPassword") ||
-          !isValidEmail
-        }
-      >
-        <LinearGradient
-          colors={
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <View style={{ marginTop: 20 }}>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoIcon}>🔐</Text>
+          <Text style={styles.logoText}>SecureVault</Text>
+        </View>
+        <Text style={styles.title}>Reset your password</Text>
+        <Text style={styles.subtitle}>
+          Enter your email and we&apos;ll send you a link to reset your password
+        </Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email Address</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="user@domain.com"
+            placeholderTextColor="#bbb"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={handleEmailChange}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.resetButton}
+          activeOpacity={0.8}
+          onPress={handleResetPassword}
+          disabled={
             (loadingStatus === "loading" &&
               loadingModal === "forgotPassword") ||
             !isValidEmail
-              ? ["#595959", "#B3B3B3"]
-              : ["#A800A6", "#FF4F01"]
           }
-          style={styles.gradientButton}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1.2, y: 0 }}
         >
-          <Text style={styles.buttonText}>Send Reset Link</Text>
-        </LinearGradient>
-      </TouchableOpacity>{" "}
-      <Text style={styles.footerText}>
-        Remember your password?{" "}{" "}
-        <Text
-          style={styles.signInText}
-          onPress={() => handleSwitchLoginSignup("login")}
-        >
-          Log in here
+          <LinearGradient
+            colors={
+              (loadingStatus === "loading" &&
+                loadingModal === "forgotPassword") ||
+              !isValidEmail
+                ? ["#a6c8ff", "#87aade"] // Disabled lighter blue
+                : ["#007bff", "#0056b3"] // Blue gradient
+            }
+            style={styles.gradientButton}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1.2, y: 0 }}
+            disabled={!isValidEmail === 0 ? true : false}
+          >
+            <Text style={styles.buttonText}>Send Reset Link</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <Text style={styles.footerText}>
+          Remember your password?{" "}
+          <Text
+            style={styles.signInText}
+            onPress={() => handleSwitchLoginSignup("login")}
+          >
+            Log in here
+          </Text>
         </Text>
-      </Text>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a001a",
+    backgroundColor: "#ffffff", // White background
     padding: 20,
     justifyContent: "flex-start",
   },
+
   logoContainer: {
-    width: "100%",
-    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 30,
   },
-  logo: {
-    width: 150,
-    height: 100,
+  logoIcon: {
+    fontSize: 48,
+    color: "#3366FF",
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#3366FF",
+    marginTop: 8,
   },
   title: {
-    color: "white",
+    color: "#000", // Black text
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 10,
   },
   subtitle: {
-    color: "#ccc",
+    color: "#555", // Dark gray
     fontSize: 16,
     textAlign: "center",
     marginBottom: 40,
   },
-  label: {
-    color: "white",
-    marginTop: 10,
-    marginBottom: 5,
-  },
+  inputContainer: { marginBottom: 20 },
+  label: { fontSize: 14, fontWeight: "600", color: "#444", marginBottom: 6 },
   input: {
-    backgroundColor: "#2d002d",
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
-    padding: 12,
-    color: "white",
-    marginBottom: 30,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    color: "#333",
   },
   resetButton: {
     borderRadius: 25,
@@ -157,12 +173,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   footerText: {
-    color: "white",
+    color: "#333",
     textAlign: "center",
     marginTop: 30,
   },
   signInText: {
-    color: "#b300b3",
+    color: "#3366FF",
+    fontWeight: "700",
     textDecorationLine: "underline",
   },
 });

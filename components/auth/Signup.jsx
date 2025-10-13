@@ -16,7 +16,6 @@ import {
 import { useDispatch } from "react-redux";
 
 const SignupScreen = ({ handleSwitchLoginSignup }) => {
-  const [loginMethod, setLoginMethod] = useState("mobile"); // "email" or "mobile"
   const [signupForm, setSignupForm] = useState({
     name: "",
     email: "",
@@ -37,14 +36,12 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
     const isValidPassword = /^\d{6}$/.test(password);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = emailRegex.test(email.trim());
-    const isValidMobile = /^[0-9]{10}$/.test(mobile);
-    const isValidContact =
-      loginMethod === "email" ? isValidEmail : isValidMobile;
+    const isValidMobile = /^[6-9][0-9]{9}$/.test(mobile);
 
     setIsNextButtonDisabled(
-      !(isValidName && isValidContact && isValidPassword)
+      !(isValidName && isValidPassword && isValidMobile && isValidEmail)
     );
-  }, [signupForm, loginMethod]);
+  }, [signupForm]);
 
   const handleSignup = () => {
     setLoading(true);
@@ -54,27 +51,12 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
       const signupData = {
         name: signupForm.name,
         password: signupForm.password,
+        email: signupForm.email.trim(),
+        mobile: signupForm.mobile.trim(),
       };
-      if (loginMethod === "email") {
-        signupData.email = signupForm.email.trim();
-      }
-      if (loginMethod === "mobile") {
-        signupData.mobile = signupForm.mobile.trim();
-      }
       // Your signup logic here
       dispatch(signupUser(signupData));
     }, 1500);
-  };
-
-  const switchLoginMethod = (method) => {
-    if (method !== loginMethod) {
-      setLoginMethod(method);
-      setSignupForm({
-        ...signupForm,
-        email: "",
-        mobile: "",
-      });
-    }
   };
 
   const handlePinKeyPress = (index, key) => {
@@ -160,79 +142,37 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
               />
             </View>
 
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  loginMethod === "email" && styles.toggleButtonActive,
-                ]}
-                onPress={() => switchLoginMethod("email")}
-                accessibilityLabel="Sign up with Email"
-              >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    loginMethod === "email" && styles.toggleTextActive,
-                  ]}
-                >
-                  Email
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  loginMethod === "mobile" && styles.toggleButtonActive,
-                ]}
-                onPress={() => switchLoginMethod("mobile")}
-                accessibilityLabel="Sign up with Mobile"
-              >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    loginMethod === "mobile" && styles.toggleTextActive,
-                  ]}
-                >
-                  Mobile
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="user@domain.com"
+                placeholderTextColor="#bbb"
+                keyboardType="email-address"
+                value={signupForm.email}
+                onChangeText={(text) =>
+                  setSignupForm({ ...signupForm, email: text.trim() })
+                }
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
             </View>
-
-            {loginMethod === "mobile" && (
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Mobile Number</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="91 2022 6043"
-                  placeholderTextColor="#bbb"
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                  value={signupForm.mobile}
-                  onChangeText={(text) =>
-                    setSignupForm({ ...signupForm, mobile: text.trim() })
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-            )}
-
-            {loginMethod === "email" && (
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email Address</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="name@domain.com"
-                  placeholderTextColor="#bbb"
-                  keyboardType="email-address"
-                  value={signupForm.email}
-                  onChangeText={(text) =>
-                    setSignupForm({ ...signupForm, email: text.trim() })
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-            )}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Mobile Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="9120226043"
+                placeholderTextColor="#bbb"
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={signupForm.mobile}
+                onChangeText={(text) =>
+                  setSignupForm({ ...signupForm, mobile: text.trim() })
+                }
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
             {/* <View style={styles.inputContainer}>
               <Text style={styles.label}>6-Digit PIN</Text>
@@ -284,6 +224,7 @@ const SignupScreen = ({ handleSwitchLoginSignup }) => {
               <Text style={styles.buttonText}>
                 {loading ? "Signing Up..." : "Sign Up"}
               </Text>
+              {!loading && <Text style={styles.buttonIcon}>→</Text>}
             </TouchableOpacity>
 
             <View style={styles.footer}>
@@ -314,7 +255,12 @@ const styles = StyleSheet.create({
   scrollContainer: { flexGrow: 1, paddingVertical: 40, paddingHorizontal: 20 },
   logoContainer: { alignItems: "center", marginBottom: 30 },
   logoIcon: { fontSize: 48, color: "#3366FF" },
-  logoText: { fontSize: 28, fontWeight: "700", color: "#3366FF", marginTop: 8 },
+  logoText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#3366FF",
+    marginTop: 8,
+  },
   content: { flex: 1 },
   title: {
     fontSize: 26,
@@ -370,11 +316,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
   },
   signupButtonDisabled: {
     backgroundColor: "#a3c0ff",
   },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 18 },
+  buttonIcon: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
   footer: {
     alignItems: "center",
     marginBottom: 12,
@@ -395,8 +348,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 
-
-   pinContainer: {
+  pinContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
   },

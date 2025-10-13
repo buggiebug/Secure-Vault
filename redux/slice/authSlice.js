@@ -57,24 +57,6 @@ export const deleteUser = createAsyncThunk("auth/deleteUser", async () => {
   }
 });
 
-// Forgot User...
-export const forgotPassword = createAsyncThunk(
-  "auth/forgotPassword",
-  async (credentials) => {
-    try {
-      const { data } = await axiosInstance.post(
-        `/api/auth/forgot-password`,
-        credentials
-      );
-      Notify(data.message, 0);
-      return data;
-    } catch (error) {
-      const err = error?.response?.data?.message || error?.message;
-      Notify(err, 1);
-    }
-  }
-);
-
 // Logout User...
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   console.log("Loggout triggred");
@@ -133,6 +115,26 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
+
+
+// Forgot User...
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (credentials) => {
+    try {
+      const { data } = await axiosInstance.post(
+        `/api/auth/forgot-password`,
+        credentials
+      );
+      Notify(data.message, 1);
+      return data;
+    } catch (error) {
+      const err = error?.response?.data?.message || error?.message;
+      Notify(err, 1);
+    }
+  }
+);
+
 
 const authSlice = createSlice({
   name: "auth",

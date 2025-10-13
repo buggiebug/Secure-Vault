@@ -48,7 +48,7 @@ export default function App() {
   // Show loading spinner while initializing
   if (
     !isInitialized ||
-    (loadingStatus === "loading" && !["login", "signup"].includes(loadingModal))
+    (loadingStatus === "loading" && !["login", "signup", "forgotPassword"].includes(loadingModal))
   ) {
     return (
       <SafeAreaProvider>

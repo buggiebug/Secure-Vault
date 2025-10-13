@@ -1,9 +1,32 @@
 // +not-found.js
+import useFetchData from "@/components/auth/useAuth";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link, Stack } from "expo-router";
-import { StyleSheet, Text } from "react-native";
+import { Link, Stack, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function NotFoundScreen() {
+  const { userData } = useFetchData();
+  const router = useRouter();
+  const [redirectTime, setRedirectTime] = useState(11);
+
+  useEffect(() => {
+    if (Object.keys(userData).length > 0) {
+      const interval = setInterval(() => {
+        setRedirectTime((prev) => prev - 1);
+      }, 1000);
+
+      const timeout = setTimeout(() => {
+        router.replace("/(tabs)/password_manager");
+      }, 11000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [userData, router]);
+
   return (
     <>
       <Stack.Screen options={{ title: "Oops!" }} />
@@ -24,6 +47,15 @@ export default function NotFoundScreen() {
             <Text style={styles.linkText}>Go Home 🏠</Text>
           </Link>
         </LinearGradient>
+
+        {/* Countdown text fixed at bottom */}
+        {Object.keys(userData).length > 0 && (
+          <View style={styles.bottomNotice}>
+            <Text style={styles.redirectText}>
+              Redirecting in {redirectTime}s
+            </Text>
+          </View>
+        )}
       </LinearGradient>
     </>
   );
@@ -67,5 +99,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     textTransform: "uppercase",
+  },
+  bottomNotice: {
+    position: "absolute",
+    bottom: 250,
+    alignSelf: "center",
+  },
+  redirectText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1E3A8A",
+    opacity: 0.8,
   },
 });
