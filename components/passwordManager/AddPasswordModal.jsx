@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  BackHandler,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 
@@ -105,13 +107,32 @@ const AddPasswordModal = ({
     }
   }, [editingPassword, groups, isEditing]);
 
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (visible) {
+          handleClose();
+          return true; // Prevent default back behavior
+        }
+        return false; // Let default back behavior happen
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <View style={styles.modalContainer}>
+      <KeyboardAvoidingView 
+        style={styles.modalContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         {/* HEADER */}
         <View style={styles.modalHeader}>
           <View>
@@ -271,7 +292,7 @@ const AddPasswordModal = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

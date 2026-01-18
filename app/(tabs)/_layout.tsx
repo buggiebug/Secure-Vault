@@ -3,7 +3,7 @@ import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import LogoutTabButton from "./logout";
+
 
 export default function TabLayout() {
 
@@ -20,32 +20,38 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}
     >
+
       <Tabs.Screen
-        name="password_manager"
+        name="notes_manager"
         options={{
-          title: "Secure Vault",
+          title: "Todo",
           tabBarIcon: ({ color }) => (
-            <IconSymbol icon="material" size={28} name="lock" color={color}/>
+            <IconSymbol icon="material" size={28} name="notes" color={color} />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="logout"
+        name="password_manager"
         options={{
-          title: "Logout",
+          title: "Secure Vault",
           tabBarIcon: ({ color }) => (
-            <IconSymbol icon="ant" size={28} name="logout" color={'#fff'} />
+            <IconSymbol icon="material" size={28} name="lock" color={color} />
           ),
-          tabBarButton: LogoutTabButton,
-        }}
-        // This prevents the logout tab from actually navigating anywhere
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-          },
         }}
       />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol icon="material" size={28} name="person" color={color} />
+          ),
+        }}
+      />
+
+
     </Tabs>
   );
 }

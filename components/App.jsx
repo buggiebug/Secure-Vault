@@ -7,6 +7,8 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import Auth from "./auth/Auth";
 import useFetchData from "./auth/useAuth";
+import { useNetInfo } from "@react-native-community/netinfo";
+import NoInternet from "./utils/NoInternet";
 
 export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -44,6 +46,12 @@ export default function App() {
       setIsInitialized(true);
     }
   }, [loadingStatus]);
+
+  // Network Check
+  const netInfo = useNetInfo();
+  if (netInfo.isConnected === false) {
+    return <NoInternet />;
+  }
 
   // Show loading spinner while initializing
   if (

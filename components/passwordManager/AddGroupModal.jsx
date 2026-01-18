@@ -1,5 +1,5 @@
 // components/AddGroupModal.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Alert,
   Modal,
@@ -9,6 +9,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
+  KeyboardAvoidingView,
+  BackHandler,
 } from "react-native";
 
 const AddGroupModal = ({
@@ -68,13 +71,32 @@ const AddGroupModal = ({
     onClose();
   };
 
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (visible) {
+          handleClose();
+          return true; // Prevent default back behavior
+        }
+        return false; // Let default back behavior happen
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <View style={styles.modalContainer}>
+      <KeyboardAvoidingView 
+        style={styles.modalContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={styles.modalHeader}>
           <View>
             <Text style={styles.modalTitle}>Create New Group</Text>
@@ -85,7 +107,12 @@ const AddGroupModal = ({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.modalContent}>
+        <ScrollView 
+          style={styles.modalContent}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>📁 Group Name</Text>
             <TextInput
@@ -117,7 +144,7 @@ const AddGroupModal = ({
               </Text>
             </View>
           </View>
-        </View>
+        </ScrollView>
 
         <View style={styles.modalButtons}>
           <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
@@ -136,7 +163,7 @@ const AddGroupModal = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -186,7 +213,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 20,
+    paddingBottom: 10,
   },
   inputContainer: {
     marginBottom: 20,

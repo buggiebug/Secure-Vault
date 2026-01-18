@@ -1,5 +1,5 @@
 import { verifyPassword } from "@/redux/slice/authSlice";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import Notify from "../utils/Notify";
+import OTPInput from "./OTPInput";
 
 const GroupFilter = ({
   totalGroups,
@@ -24,6 +25,7 @@ const GroupFilter = ({
   const filterAnim = useRef(new Animated.Value(1)).current;
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
 
   const handlePress = () => {
@@ -131,27 +133,60 @@ const GroupFilter = ({
       {/* Password confirmation modal */}
       <Modal transparent visible={showModal} animationType="fade">
         <View style={styles.overlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Confirm PIN 😶🙄🤐</Text>
+          <View style={styles.modalCard}>
+            {/* Warning Icon */}
+            <View style={styles.iconContainer}>
+              <Text style={styles.warningIcon}>🗑️</Text>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.modalTitle}>Delete Group?</Text>
+            
+            {/* Description */}
             <Text style={styles.modalDesc}>
-              This group {"(" + group.name + ")"} conatins{" "}
-              {totalGroups.length || 0} passwords. Are you sure want to delete
-              the group if yes enter your PIN to confirm? else cancel.
+              You're about to delete <Text style={styles.groupNameHighlight}>"{group.name}"</Text> which contains{" "}
+              <Text style={styles.passwordCountHighlight}>{totalGroups.length || 0} password{totalGroups.length !== 1 ? 's' : ''}</Text>.
             </Text>
-            <TextInput
-              style={styles.input}
-              secureTextEntry
-              placeholder="Enter your PIN"
-              value={password}
-              onChangeText={setPassword}
-              inputMode="numeric"
-            />
+
+            <View style={styles.warningBox}>
+              <Text style={styles.warningEmoji}>⚠️</Text>
+              <Text style={styles.warningText}>
+                All passwords in this group will be permanently deleted. This action cannot be undone.
+              </Text>
+            </View>
+
+            {/* PIN Input */}
+            <View style={styles.inputWrapper}>
+              <View style={styles.labelRow}>
+                <Text style={styles.inputLabel}>🔐 Enter your PIN to confirm</Text>
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+                </TouchableOpacity>
+              </View>
+              <OTPInput
+                length={6}
+                value={password}
+                onComplete={setPassword}
+                secureTextEntry={!showPassword}
+              />
+            </View>
+
+            {/* Action Buttons */}
             <View style={styles.actions}>
-              <TouchableOpacity onPress={() => setShowModal(false)}>
-                <Text style={styles.cancel}>Cancel</Text>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={() => {
+                  setShowModal(false);
+                  setPassword("");
+                }}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={confirmDelete}>
-                <Text style={styles.delete}>Delete Group</Text>
+              <TouchableOpacity 
+                style={styles.deleteButton} 
+                onPress={confirmDelete}
+              >
+                <Text style={styles.deleteText}>🗑️ Delete Group</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -168,7 +203,15 @@ const GroupFilters = ({
   fadeAnim,
   slideAnim,
   handleDeleteGroup,
+  refreshing
 }) => {
+
+
+  useEffect(()=>{
+
+  },[refreshing])
+
+
   return (
     <Animated.View
       style={[
@@ -248,47 +291,123 @@ const styles = StyleSheet.create({
   // 🔑 Modal styles
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  modal: {
-    width: "80%",
-    backgroundColor: "white",
-    borderRadius: 10,
     padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold" },
-  modalDesc: {
-    fontSize: 14,
-    fontWeight: "thin",
-    marginBottom: 10,
-    color: "#C59560",
+  modalCard: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
+  iconContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  warningIcon: {
+    fontSize: 56,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalDesc: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  groupNameHighlight: {
+    fontWeight: "bold",
+    color: "#6C63FF",
+  },
+  passwordCountHighlight: {
+    fontWeight: "bold",
+    color: "#FF6B6B",
+  },
+  warningBox: {
+    flexDirection: "row",
+    backgroundColor: "#FFF3CD",
+    borderLeftWidth: 4,
+    borderLeftColor: "#FFC107",
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 20,
+    alignItems: "flex-start",
+  },
+  warningEmoji: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#856404",
+    lineHeight: 18,
+  },
+  inputWrapper: {
+    marginBottom: 24,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
     color: "#333",
   },
-  actions: { flexDirection: "row", justifyContent: "flex-end" },
-  cancel: {
-    fontSize: 16,
-    marginRight: 20,
-    color: "white",
-    backgroundColor: "gray",
-    padding: 10,
-    borderRadius: 15,
+  eyeIcon: {
+    fontSize: 20,
   },
-  delete: {
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  cancelText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "600",
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    shadowColor: "#FF6B6B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  deleteText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "white",
-    backgroundColor: "red",
-    padding: 10,
-    borderRadius: 15,
+    color: "#fff",
   },
 });
 

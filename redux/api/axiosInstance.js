@@ -2,11 +2,11 @@ import axios from "axios";
 import localStorage from "../../components/utils/localStorage";
 
 const axiosInstance = axios.create({
-  // baseURL: "https://w5s7gzkg-4000.inc1.devtunnels.ms", // Replace with your API base URL
-  baseURL: "https://track-me-backend-qruq.onrender.com", // Replace with your API base URL
-  timeout: 20000,
+  baseURL: "http://localhost:4000", // Replace with your API base URL
+  timeout: 10000, // Reduced from 20s to 10s for faster failure detection
   headers: {
     "Content-Type": "application/json",
+    "Accept-Encoding": "gzip, deflate", // Support compression from backend
   },
 });
 
@@ -15,8 +15,8 @@ axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await localStorage.getItem("userToken");
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`; 
-      config.headers["usertoken"] = `${token}`; 
+      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers["usertoken"] = `${token}`;
     }
     return config;
   },

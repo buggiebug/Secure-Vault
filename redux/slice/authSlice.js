@@ -1,6 +1,7 @@
 import localStorage from "@/components/utils/localStorage";
 import Notify from "@/components/utils/Notify";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { PURGE } from "redux-persist";
 import axiosInstance from "../api/axiosInstance";
 
 // Define initial state
@@ -58,23 +59,28 @@ export const deleteUser = createAsyncThunk("auth/deleteUser", async () => {
 });
 
 // Logout User...
-export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
+export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, { extra }) => {
   console.log("Loggout triggred");
   Notify("Logged out successfully", 0);
   await localStorage.removeItem("userToken");
+
+  // Purge persisted storage on logout
+  // Note: The PURGE action handler in reducers will reset state to initial
+
   return { isLoggedIn: false };
 });
 
 // Get User...
-export const getUser = createAsyncThunk("auth/getUser", async () => {
+export const getUser = createAsyncThunk("auth/getUser", async (_, { rejectWithValue }) => {
   try {
     const { data } = await axiosInstance.get(`/api/auth/user/me`);
     return data;
   } catch (error) {
-    const err = error?.response?.data?.message || error?.message;
-    console.log(err);
-    // Notify(err, 1);
-    return false;
+    const errMessage = error?.response?.data?.message || error?.message;
+    const status = error?.response?.status;
+    console.log("Get user failed:", errMessage);
+    // Return specific object to identifier error type
+    return rejectWithValue({ message: errMessage, status });
   }
 });
 
@@ -98,20 +104,20 @@ export const verifyPassword = createAsyncThunk(
 // Update User...
 export const updateUserProfile = createAsyncThunk(
   "auth/updateUserProfile",
-  async (updateData) => {
+  async (updateData, { rejectWithValue }) => {
     try {
       const { userData, message } = updateData;
       console.log("Update user data: ", userData);
       const { data } = await axiosInstance.patch(
-        `/api/auth/userupdate`,
+        `/api/auth/user/me/update`,
         userData
       );
-      const response = await axiosInstance.get(`/api/auth/getuser`);
       if (!userData?.location) Notify(message, 0);
-      return response?.data;
+      return data; // Return the full response, the reducer handles extracting .data
     } catch (error) {
       const err = error?.response?.data?.message || error?.message;
       Notify(err, 1);
+      return rejectWithValue(err);
     }
   }
 );
@@ -237,17 +243,28 @@ const authSlice = createSlice({
           localStorage.removeItem("userToken");
         } else {
           state.isLoggedIn = true; // User data received, set logged in
-          state.userData = action.payload;
+          state.userData = action.payload?.data || action.payload; // Handle wrapper
         }
       })
       .addCase(getUser.rejected, (state, action) => {
         state.loadingStatus = "failed";
         state.loadingModal = "getUser";
-        // On rejection, user is not authenticated
-        state.isLoggedIn = false;
-        state.userData = {};
-        localStorage.removeItem("userToken");
-        state.error = action.error.message;
+
+        const { status, message } = action.payload || {};
+
+        // Only logout if it's explicitly an auth error or user not found
+        // 401: Unauthorized, 403: Forbidden, 404: Not Found
+        if (status === 401 || status === 403 || status === 404) {
+          state.isLoggedIn = false;
+          state.userData = {};
+          localStorage.removeItem("userToken");
+          state.error = message || "Authentication failed";
+        } else {
+          // Network error or server error - KEEP user logged in (optimistic)
+          // Ideally we might want to show a "Offline" badge
+          console.log("Network/Server error during getUser, keeping session alive.");
+          state.error = message || action.error.message;
+        }
       })
 
       //  Update user
@@ -258,12 +275,17 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loadingStatus = "succeeded";
         state.loadingModal = "updateUserProfile";
-        state.userData = action.payload;
+        state.userData = action.payload?.data || action.payload;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loadingStatus = "failed";
         state.loadingModal = "updateUserProfile";
         state.error = action.error.message;
+      })
+
+      // Handle PURGE action (on logout, clear persisted data)
+      .addCase(PURGE, (state) => {
+        return initialState; // Reset to initial state
       });
   },
 });

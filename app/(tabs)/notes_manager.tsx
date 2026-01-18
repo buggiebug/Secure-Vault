@@ -1,9 +1,6 @@
-import PasswordManager from "@/components/passwordManager/PasswordManager";
+import NotesManager from "@/components/notesManager/NotesManager";
 import { selectUserDetails } from "@/redux/reselect/reselectData";
-import {
-  fetchGroups,
-  fetchPasswords,
-} from "@/redux/slice/passwordManagerSlice";
+
 import type { AppDispatch } from "@/redux/store";
 import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,8 +13,7 @@ export default function PasswordManagerScreen() {
 
   const refreshData = useCallback(() => {
     if (isLoggedInUser && userData) {
-      dispatch(fetchGroups());
-      dispatch(fetchPasswords());
+
     }
   }, [dispatch, isLoggedInUser, userData]);
 
@@ -36,5 +32,5 @@ export default function PasswordManagerScreen() {
     setRefreshing(false);
   }, [refreshData]);
 
-  return <PasswordManager refreshing={refreshing} onRefresh={onRefresh} />;
+  return <NotesManager />;
 }

@@ -1,6 +1,8 @@
 import Notify from "@/components/utils/Notify";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { PURGE } from "redux-persist";
 import axiosInstance from "../api/axiosInstance";
+
 
 // ----------------- Initial State -----------------
 const initialState = {
@@ -16,9 +18,9 @@ const initialState = {
 // Add Group
 export const addGroup = createAsyncThunk(
   "pm/addGroup",
-  async (groupData, { rejectWithValue }) => {
+  async (groupData, { dispatch, rejectWithValue }) => {
     try {
-      // console.log(groupData);
+
       await axiosInstance.post(`/api/pm/groups`, groupData);
       Notify("Group added successfully", 0);
       const { data } = await axiosInstance.get(`/api/pm/groups`);
@@ -31,7 +33,7 @@ export const addGroup = createAsyncThunk(
   }
 );
 
-// Get Groups
+// Get Groups (Read-only, just fails if offline, or relies on cache)
 export const fetchGroups = createAsyncThunk(
   "pm/fetchGroups",
   async (_, { rejectWithValue }) => {
@@ -48,8 +50,9 @@ export const fetchGroups = createAsyncThunk(
 // Delete Group
 export const deleteGroup = createAsyncThunk(
   "pm/deleteGroup",
-  async (groupId, { rejectWithValue }) => {
+  async (groupId, { dispatch, rejectWithValue }) => {
     try {
+
       await axiosInstance.delete(`/api/pm/groups/${groupId}`);
       Notify("Group deleted successfully", 0);
       return groupId;
@@ -64,8 +67,9 @@ export const deleteGroup = createAsyncThunk(
 // Add Password
 export const addPassword = createAsyncThunk(
   "pm/addPassword",
-  async (passwordData, { rejectWithValue }) => {
+  async (passwordData, { dispatch, rejectWithValue }) => {
     try {
+
       const { data } = await axiosInstance.post(
         `/api/pm/passwords`,
         passwordData
@@ -83,8 +87,9 @@ export const addPassword = createAsyncThunk(
 // Update Password
 export const updatePassword = createAsyncThunk(
   "pm/updatePassword",
-  async (passwordData, { rejectWithValue }) => {
+  async (passwordData, { dispatch, rejectWithValue }) => {
     try {
+
       const { data } = await axiosInstance.patch(
         `/api/pm/passwords/${passwordData._id}`,
         passwordData
@@ -116,8 +121,9 @@ export const fetchPasswords = createAsyncThunk(
 // Delete Password
 export const deletePassword = createAsyncThunk(
   "pm/deletePassword",
-  async (passwordId, { rejectWithValue }) => {
+  async (passwordId, { dispatch, rejectWithValue }) => {
     try {
+
       await axiosInstance.delete(`/api/pm/passwords/${passwordId}`);
       Notify("Password deleted successfully", 0);
       return passwordId;
@@ -137,6 +143,7 @@ const passwordManager = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+
   },
   extraReducers: (builder) => {
     builder
@@ -163,7 +170,10 @@ const passwordManager = createSlice({
       .addCase(addGroup.fulfilled, (state, action) => {
         state.loadingStatus = "succeeded";
         state.loadingModal = "addGroup";
-        if (action.payload) state.groups = action.payload;
+        // Handle both single object (offline) or array (online fetch refetch)
+        if (Array.isArray(action.payload)) {
+          state.groups = action.payload;
+        }
       })
       .addCase(addGroup.rejected, (state, action) => {
         state.loadingStatus = "failed";
@@ -242,6 +252,11 @@ const passwordManager = createSlice({
         state.passwords = state.passwords.filter(
           (p) => p._id !== action.payload
         );
+      })
+
+      // Handle PURGE action (on logout, clear all cached data)
+      .addCase(PURGE, (state) => {
+        return initialState; // Reset to initial state
       });
   },
 });

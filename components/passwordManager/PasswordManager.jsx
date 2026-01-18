@@ -5,6 +5,7 @@ import {
   Alert,
   Animated,
   FlatList,
+  RefreshControl,
   StatusBar,
   StyleSheet,
   View,
@@ -29,7 +30,7 @@ import GroupFilters from "./GroupFilter";
 import Header from "./Header";
 import PasswordItem from "./PasswordItem";
 
-const PasswordManager = () => {
+const PasswordManager = ({ refreshing, onRefresh }) => {
   const dispatch = useDispatch();
   const { groupsData, passwordsData, loadingStatus, loadingModal } =
     useSelector(selectPasswordDetails);
@@ -240,6 +241,7 @@ const PasswordManager = () => {
         fadeAnim={fadeAnim}
         slideAnim={slideAnim}
         handleDeleteGroup={handleDeleteGroup}
+        refreshing={refreshing}
       />
 
       {/* Password List */}
@@ -266,6 +268,9 @@ const PasswordManager = () => {
           style={styles.passwordList}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<EmptyState fadeAnim={fadeAnim} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       </Animated.View>
 
