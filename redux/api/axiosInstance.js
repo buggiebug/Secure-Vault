@@ -2,8 +2,8 @@ import axios from "axios";
 import localStorage from "../../components/utils/localStorage";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:4000", // Replace with your API base URL
-  timeout: 10000, // Reduced from 20s to 10s for faster failure detection
+  baseURL: "https://p6bp7xgb-4000.inc1.devtunnels.ms", // Replace with your API base URL
+  timeout: 100000, // Timeout in seconds, If request is not completed within this time, it will throw an error
   headers: {
     "Content-Type": "application/json",
     "Accept-Encoding": "gzip, deflate", // Support compression from backend

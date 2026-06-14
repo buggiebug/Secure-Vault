@@ -24,31 +24,32 @@ const PasswordItem = ({
     getGroupIcon(item.group) ||
     "";
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordNotes, setShowPasswordNotes] = useState(false);
   const itemAnim = useRef(new Animated.Value(0)).current;
   const scaleItemAnim = useRef(new Animated.Value(0.8)).current;
 
   // Format last updated time
   const formatLastUpdated = (dateString) => {
     if (!dateString) return 'Never';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
-    
+
     // Format as date if older than a week
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
   };
 
@@ -120,6 +121,30 @@ const PasswordItem = ({
         {
           text: "Yes",
           onPress: () => setShowPassword(true),
+        },
+        {
+          text: "No",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  // 
+  const togglePasswordNotesVisibility = () => {
+    if (showPasswordNotes) {
+      // Already visible → just hide it
+      setShowPasswordNotes(false);
+      return;
+    }
+
+    Alert.alert(
+      "View Notes",
+      "",
+      [
+        {
+          text: "Yes",
+          onPress: () => setShowPasswordNotes(true),
         },
         {
           text: "No",
@@ -204,7 +229,15 @@ const PasswordItem = ({
           {item.notes ? (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>📝 Notes:</Text>
-              <Text style={styles.detailValue}>{item.notes}</Text>
+              <TouchableOpacity
+                onPress={togglePasswordNotesVisibility}
+                style={styles.passwordToggle}
+              >
+                <Text style={styles.detailValue}>
+                  {showPasswordNotes ? item.notes : "🙈".repeat(10)}
+                </Text>
+                <Text style={styles.eyeIcon}>{showPasswordNotes ? "🙈" : "👁️"}</Text>
+              </TouchableOpacity>
             </View>
           ) : null}
         </View>

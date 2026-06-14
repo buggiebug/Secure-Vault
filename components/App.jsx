@@ -9,6 +9,7 @@ import Auth from "./auth/Auth";
 import useFetchData from "./auth/useAuth";
 import { useNetInfo } from "@react-native-community/netinfo";
 import NoInternet from "./utils/NoInternet";
+import useNotifications from "@/hooks/useNotifications";
 
 export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -17,6 +18,9 @@ export default function App() {
   // Get auth state from Redux
   const { isLoggedInUser, userData, loadingStatus, loadingModal } =
     useFetchData();
+
+  // Register for push notifications when user is logged in
+  const { expoPushToken, notification } = useNotifications(isLoggedInUser);
 
   // Initialize authentication check only once
   useEffect(() => {
@@ -90,6 +94,7 @@ export default function App() {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

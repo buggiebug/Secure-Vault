@@ -61,6 +61,20 @@ const PasswordManager = ({ refreshing, onRefresh }) => {
     setIsEditing(true);
   };
 
+  // Sync Tracking
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+
+  useEffect(() => {
+    if (loadingStatus === "succeeded" && loadingModal === "fetchPasswords") {
+      setLastSyncedAt(Date.now());
+    }
+  }, [loadingStatus, loadingModal]);
+
+  const isSyncing = refreshing || (loadingStatus === "loading" && loadingModal === "fetchPasswords");
+  let syncStatus = 'idle';
+  if (loadingStatus === 'succeeded' && loadingModal === 'fetchPasswords') syncStatus = 'success';
+  if (loadingStatus === 'failed' && loadingModal === 'fetchPasswords') syncStatus = 'error';
+
   // Simplified password count state
   const [passwordCount, setPasswordCount] = useState({
     total: 0,
@@ -231,7 +245,14 @@ const PasswordManager = ({ refreshing, onRefresh }) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#6C63FF" />
 
-      <Header passwordCount={passwordCount} headerAnim={headerAnim} />
+      <Header
+        passwordCount={passwordCount}
+        headerAnim={headerAnim}
+        syncStatus={syncStatus}
+        lastSyncedAt={lastSyncedAt}
+        onSync={onRefresh}
+        isSyncing={isSyncing}
+      />
 
       {/* Group Filters */}
       <GroupFilters
@@ -271,6 +292,10 @@ const PasswordManager = ({ refreshing, onRefresh }) => {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          removeClippedSubviews={true}
         />
       </Animated.View>
 

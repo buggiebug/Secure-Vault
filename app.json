@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.trackme"
+      "package": "com.trackme",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -41,9 +42,11 @@
         }
       ],
       [
-        "expo-audio",
+        "expo-notifications",
         {
-          "microphonePermission": "Allow secureVault to access your microphone."
+          "icon": "./assets/images/android-icon-foreground.png",
+          "color": "#007BFF",
+          "defaultChannel": "default"
         }
       ]
     ],

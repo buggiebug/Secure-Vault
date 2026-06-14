@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import authReducer from "./slice/authSlice";
 import passwordManagerSlice from "./slice/passwordManagerSlice";
 import todoReducer from "./slice/todoSlice";
+import expenseReducer from "./slice/expenseSlice";
 
 // Persist configuration for auth slice
 const authPersistConfig = {
@@ -30,17 +31,26 @@ const todoPersistConfig = {
     whitelist: ["tasks"],
   };
 
+// Persist configuration for expense slice
+const expensePersistConfig = {
+    key: "expense",
+    storage: AsyncStorage,
+    whitelist: ["expenseData"],
+    blacklist: ["loadingStatus", "loadingModal", "error", "message"],
+};
+
 // Create persisted reducers
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedPmReducer = persistReducer(pmPersistConfig, passwordManagerSlice);
 
 const persistedTodoReducer = persistReducer(todoPersistConfig, todoReducer);
+const persistedExpenseReducer = persistReducer(expensePersistConfig, expenseReducer);
 
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
     pm: persistedPmReducer,
-
+    expense: persistedExpenseReducer,
     todo: persistedTodoReducer,
   },
   middleware: (getDefaultMiddleware) =>

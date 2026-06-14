@@ -16,8 +16,7 @@ import TextNote from "./TextNote";
 import AudioNote from "./AudioNote";
 import { migrateLegacyData, createNote } from "../../redux/slice/todoSlice";
 import ListNotes from "./ListNotes";
-
-// Import API service
+import useTodoSync from "../../hooks/useTodoSync";
 
 const NotesManager = () => {
   const dispatch = useDispatch();
@@ -26,6 +25,9 @@ const NotesManager = () => {
 
   const allNotes = useSelector((state) => state.todo.tasks);
   const activeNote = selectedNoteId ? allNotes[selectedNoteId] : null; // activeNote might be undefined if just deleted
+
+  // Use sync hook for automatic syncing
+  const { syncStatus, lastSyncedAt, manualSync, isSyncing } = useTodoSync();
 
   useEffect(() => {
     dispatch(migrateLegacyData());
@@ -105,7 +107,14 @@ const NotesManager = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#6C63FF" />
       {/* Pass headerAnim to Header if needed, or if Header is fixed */}
-      <Header headerAnim={headerAnim} count={Object.keys(allNotes).length} />
+      <Header
+        headerAnim={headerAnim}
+        count={Object.keys(allNotes).length}
+        syncStatus={syncStatus}
+        lastSyncedAt={lastSyncedAt}
+        onSync={manualSync}
+        isSyncing={isSyncing}
+      />
 
       {selectedNoteId && activeNote ? (
         activeNote.type === 'text' ? (

@@ -22,3 +22,15 @@ export const selectPasswordDetails = createSelector(
     error: password?.error || null,
   })
 );
+
+const selectExpenseState = (state) => state.expense;
+export const selectExpenseDetails = createSelector(
+  [selectExpenseState],
+  (expense) => ({
+    expenseData: expense?.expenseData || [],
+    loadingStatus: expense?.loadingStatus || "idle",
+    loadingModal: expense?.loadingModal || "",
+    error: expense?.error || null,
+    message: expense?.message || "",
+  })
+);

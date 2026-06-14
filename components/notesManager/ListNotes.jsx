@@ -42,7 +42,7 @@ const TaskRow = ({ task, onToggle, onDelete, onUpdate, onTimePress }) => {
             {/* Time Column (vertical separator built-in via border) */}
             <View style={styles.timeContainer}>
                 <TouchableOpacity onPress={() => onTimePress(task.id)} style={styles.timeInputBtn}>
-                    <Text style={styles.timeText}>{task.time}</Text>
+                    <Text style={styles.timeText}>{task.time || "⏱️"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => onDelete(task.id)} style={styles.deleteBtn}>
                     <Text style={styles.deleteIcon}>×</Text>
