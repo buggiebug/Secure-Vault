@@ -84,18 +84,27 @@ const expenseSlice = createSlice({
     builder
       // Handle Get All Expenses...
       .addCase(getAllExpenses.pending, (state) => {
-        state.loadingStatus = 'loading';
+        // Only show loading spinner if we don't have cached expense data.
+        // This prevents a flash of loading when we already have persisted data.
+        if (!state.expenseData || state.expenseData.length === 0) {
+          state.loadingStatus = 'loading';
+        }
         state.loadingModal = 'getAllExpenses';
       })
       .addCase(getAllExpenses.fulfilled, (state, action) => {
         state.loadingStatus = 'succeeded';
         state.loadingModal = 'getAllExpenses';
-        state.expenseData = action.payload?.data?.expenseData;
+        // Only update if we got valid data — don't wipe cache with undefined
+        const freshData = action.payload?.data?.expenseData;
+        if (freshData !== undefined) {
+          state.expenseData = freshData;
+        }
       })
       .addCase(getAllExpenses.rejected, (state, action) => {
         state.loadingStatus = 'failed';
         state.loadingModal = 'getAllExpenses';
         state.error = action.payload;
+        // Don't clear expenseData on failure — keep showing cached data
       })
 
       // Handle Create New Expenses...
