@@ -3,6 +3,8 @@ import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import axiosInstance from "@/redux/api/axiosInstance";
+import { store } from "@/redux/store";
+import { addNotification } from "@/redux/slice/notificationSlice";
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -58,25 +60,58 @@ export default function useNotifications(isLoggedIn) {
       Notifications.addNotificationReceivedListener((notif) => {
         if (isMounted) setNotification(notif);
         console.log("🔔 Notification received:", notif.request.content.title);
+
+        // Store notification in Redux for the notifications page
+        const content = notif.request.content;
+        store.dispatch(addNotification({
+          title: content.title,
+          body: content.body,
+          imageUrl: content.data?.imageUrl || null,
+          data: content.data || {},
+        }));
       });
 
     // Listener: fires when the user taps on a notification
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data;
+        const content = response.notification.request.content;
+        const data = content.data;
         console.log("👆 Notification tapped, data:", data);
-        // You can navigate to a specific screen based on data here
+
+        // Also store tapped notifications (in case they arrived while app was in background)
+        store.dispatch(addNotification({
+          title: content.title,
+          body: content.body,
+          imageUrl: data?.imageUrl || null,
+          data: data || {},
+        }));
       });
 
     return () => {
       isMounted = false;
+      // Clean up notification listeners safely
+      // In Expo Go, removeNotificationSubscription may not be available
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(
-          notificationListener.current
-        );
+        try {
+          if (notificationListener.current.remove) {
+            notificationListener.current.remove();
+          } else if (Notifications.removeNotificationSubscription) {
+            Notifications.removeNotificationSubscription(notificationListener.current);
+          }
+        } catch (e) {
+          // Silently ignore cleanup errors
+        }
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        try {
+          if (responseListener.current.remove) {
+            responseListener.current.remove();
+          } else if (Notifications.removeNotificationSubscription) {
+            Notifications.removeNotificationSubscription(responseListener.current);
+          }
+        } catch (e) {
+          // Silently ignore cleanup errors
+        }
       }
     };
   }, [isLoggedIn]);

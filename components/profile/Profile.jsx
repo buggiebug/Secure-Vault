@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "expo-router";
 import {
     updateUserProfile,
+    updateUserPin,
     logoutUser,
 } from "../../redux/slice/authSlice";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -87,8 +88,15 @@ const Profile = () => {
     const { userData, loadingStatus, loadingModal } = useSelector(
         (state) => state.auth
     );
+    const unreadCount = useSelector((state) => state.notifications.unreadCount);
 
-    const [activeModal, setActiveModal] = useState(null); // 'personal', 'settings', 'preferences'
+    const [activeModal, setActiveModal] = useState(null); // 'personal', 'settings', 'preferences', 'updatePin'
+
+    const [pinData, setPinData] = useState({
+        oldPin: "",
+        newPin: "",
+        confirmPin: ""
+    });
 
     // Form state matching schema
     const [formData, setFormData] = useState({
@@ -147,13 +155,38 @@ const Profile = () => {
         });
     };
 
+    const handlePinUpdate = () => {
+        if (pinData.newPin !== pinData.confirmPin) {
+            Alert.alert("Error", "New PIN and Confirm PIN do not match");
+            return;
+        }
+        dispatch(
+            updateUserPin({
+                oldPin: pinData.oldPin,
+                newPin: pinData.newPin
+            })
+        ).then((res) => {
+            if (res?.meta?.requestStatus === "fulfilled") {
+                setActiveModal(null);
+                setPinData({ oldPin: "", newPin: "", confirmPin: "" });
+            }
+        });
+    };
+
     const handleLogout = () => {
         Alert.alert("Logout", "Are you sure you want to logout?", [
             { text: "Cancel", style: "cancel" },
             {
                 text: "Logout",
                 style: "destructive",
-                onPress: () => dispatch(logoutUser()),
+                onPress: async () => {
+                    try {
+                        console.log('Signout Triggered')
+                        await dispatch(logoutUser()).unwrap();
+                    } catch (error) {
+                        console.error("Logout failed:", error);
+                    }
+                },
             },
         ]);
     };
@@ -171,9 +204,15 @@ const Profile = () => {
                     <IconSymbol name="chevron-left" size={28} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Profile</Text>
-                <TouchableOpacity style={styles.bellIconWrapper}>
+                <TouchableOpacity style={styles.bellIconWrapper} onPress={() => router.push('/notifications')}>
                     <IconSymbol name="notifications" size={24} color="#fff" />
-                    <View style={styles.notificationDot} />
+                    {unreadCount > 0 && (
+                        <View style={styles.notificationDot}>
+                            <Text style={styles.notificationDotText}>
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -209,6 +248,11 @@ const Profile = () => {
                         icon="person"
                         title="Personal profile"
                         onPress={() => setActiveModal('personal')}
+                    />
+                    <MenuItem
+                        icon="lock"
+                        title="Update PIN"
+                        onPress={() => setActiveModal('updatePin')}
                     />
                     {/* <MenuItem
                         icon="settings"
@@ -271,6 +315,27 @@ const Profile = () => {
                         </Picker>
                     </View>
                 </View>
+            </ModalWrapper>
+
+            <ModalWrapper visible={activeModal === 'updatePin'} title="Update PIN" setActiveModal={setActiveModal} handleUpdate={handlePinUpdate} loadingStatus={loadingStatus} loadingModal={loadingModal}>
+                <InputField
+                    label="Current PIN"
+                    value={pinData.oldPin}
+                    onChangeText={(text) => setPinData({ ...pinData, oldPin: text })}
+                    keyboardType="number-pad"
+                />
+                <InputField
+                    label="New PIN"
+                    value={pinData.newPin}
+                    onChangeText={(text) => setPinData({ ...pinData, newPin: text })}
+                    keyboardType="number-pad"
+                />
+                <InputField
+                    label="Confirm New PIN"
+                    value={pinData.confirmPin}
+                    onChangeText={(text) => setPinData({ ...pinData, confirmPin: text })}
+                    keyboardType="number-pad"
+                />
             </ModalWrapper>
 
             <ModalWrapper visible={activeModal === 'settings'} title="App Settings" setActiveModal={setActiveModal} handleUpdate={handleUpdate} loadingStatus={loadingStatus} loadingModal={loadingModal}>

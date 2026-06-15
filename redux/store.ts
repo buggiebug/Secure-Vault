@@ -6,6 +6,7 @@ import authReducer from "./slice/authSlice";
 import passwordManagerSlice from "./slice/passwordManagerSlice";
 import todoReducer from "./slice/todoSlice";
 import expenseReducer from "./slice/expenseSlice";
+import notificationReducer from "./slice/notificationSlice";
 
 // Persist configuration for auth slice
 const authPersistConfig = {
@@ -39,12 +40,20 @@ const expensePersistConfig = {
     blacklist: ["loadingStatus", "loadingModal", "error", "message"],
 };
 
+// Persist configuration for notification slice
+const notificationPersistConfig = {
+    key: "notifications",
+    storage: AsyncStorage,
+    whitelist: ["notifications", "unreadCount"],
+};
+
 // Create persisted reducers
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedPmReducer = persistReducer(pmPersistConfig, passwordManagerSlice);
 
 const persistedTodoReducer = persistReducer(todoPersistConfig, todoReducer);
 const persistedExpenseReducer = persistReducer(expensePersistConfig, expenseReducer);
+const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
 
 export const store = configureStore({
   reducer: {
@@ -52,6 +61,7 @@ export const store = configureStore({
     pm: persistedPmReducer,
     expense: persistedExpenseReducer,
     todo: persistedTodoReducer,
+    notifications: persistedNotificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -63,6 +73,10 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
+// Inject store to axios instance for interceptors
+import { injectStore } from "./api/axiosInstance";
+injectStore(store);
 
 // ✅ Export RootState and AppDispatch types
 export type RootState = ReturnType<typeof store.getState>;

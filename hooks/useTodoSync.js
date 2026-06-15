@@ -13,18 +13,18 @@ import NetInfo from '@react-native-community/netinfo';
 export const useTodoSync = () => {
     const dispatch = useDispatch();
     const { syncStatus, offlineQueue, lastSyncedAt } = useSelector(state => state.todo);
-    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+    const isLoggedIn = useSelector(state => state.auth.isLoggedIn);
 
     // Initial fetch on login
     useEffect(() => {
-        if (isAuthenticated && !lastSyncedAt) {
+        if (isLoggedIn && !lastSyncedAt) {
             dispatch(fetchTodosThunk());
         }
-    }, [isAuthenticated, dispatch, lastSyncedAt]);
+    }, [isLoggedIn, dispatch, lastSyncedAt]);
 
     // Periodic sync (every 5 minutes when online)
     useEffect(() => {
-        if (!isAuthenticated) return;
+        if (!isLoggedIn) return;
 
         const interval = setInterval(() => {
             console.log('[useTodoSync] Periodic sync triggered');
@@ -32,11 +32,11 @@ export const useTodoSync = () => {
         }, 5 * 60 * 1000); // 5 minutes
 
         return () => clearInterval(interval);
-    }, [isAuthenticated, dispatch]);
+    }, [isLoggedIn, dispatch]);
 
     // Sync when coming online
     useEffect(() => {
-        if (!isAuthenticated) return;
+        if (!isLoggedIn) return;
 
         const unsubscribe = NetInfo.addEventListener(state => {
             if (state.isConnected) {
@@ -46,15 +46,15 @@ export const useTodoSync = () => {
         });
 
         return () => unsubscribe();
-    }, [isAuthenticated, dispatch]);
+    }, [isLoggedIn, dispatch]);
 
     // Manual sync function
     const manualSync = useCallback(() => {
         console.log('[useTodoSync] Manual sync triggered');
-        if (isAuthenticated) {
+        if (isLoggedIn) {
             dispatch(syncTodosThunk());
         }
-    }, [isAuthenticated, dispatch]);
+    }, [isLoggedIn, dispatch]);
 
     return {
         syncStatus,
