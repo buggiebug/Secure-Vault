@@ -24,6 +24,7 @@
 
 ## ✨ Glimpse of App
 
+<img width="2880" height="1600" alt="secureVault" src="https://github.com/user-attachments/assets/d9ffd2c9-bb34-498c-a5af-432dced4eaa4" />
 
 
 <br>
@@ -379,13 +380,6 @@ Contributions are welcome! Here's how to get started:
 - Test on both Android and iOS before submitting PRs
 - Keep Redux slices modular and well-documented
 
----
-
-## 📄 License
-
-This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) file for details.
-
----
 
 ## 👨‍💻 Author
 
